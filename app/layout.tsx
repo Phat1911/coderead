@@ -20,17 +20,23 @@ export const metadata: Metadata = {
   },
   description: 'Practice reading real code snippets and sharpen your ability to work with AI effectively. Free coding challenges for developers.',
   keywords: ['code reading', 'AI coding', 'programming challenges', 'learn to code', 'JavaScript', 'TypeScript'],
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/owl-180.png',
+  },
   openGraph: {
     title: 'CodeRead - Learn to Read Code',
     description: 'Practice reading real code snippets and sharpen your ability to work with AI effectively.',
     url: 'https://codeoneread.tech',
     siteName: 'CodeRead',
     type: 'website',
+    images: [{ url: '/owl-512.png', width: 512, height: 512 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'CodeRead - Learn to Read Code',
     description: 'Practice reading real code snippets and sharpen your ability to work with AI effectively.',
+    images: ['/owl-512.png'],
   },
 };
 
