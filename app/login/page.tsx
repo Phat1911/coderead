@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useRef, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/ui/Navbar'
+import OwlController from '@/components/ui/OwlController'
 
 const inputClass = 'w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-colors'
 
@@ -31,10 +32,18 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [activeField, setActiveField] = useState<'none' | 'username' | 'email' | 'password'>('none')
+  const emailRef = useRef<HTMLInputElement>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+      setError('Please enter a valid email address')
+      return
+    }
+
     setLoading(true)
 
     const supabase = createClient()
@@ -58,16 +67,29 @@ function LoginForm() {
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back</h1>
         <p className="text-gray-500 dark:text-gray-400 mb-8">Sign in to track your progress</p>
 
+        <div className="flex justify-center mb-6">
+          <OwlController
+            activeField={activeField}
+            showPassword={showPassword}
+            usernameRef={emailRef}
+            emailRef={emailRef}
+          />
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
               Email
             </label>
             <input
-              type="email"
+              ref={emailRef}
+              type="text"
+              inputMode="email"
               required
               value={email}
               onChange={e => setEmail(e.target.value)}
+              onFocus={() => setActiveField('email')}
+              onBlur={() => setActiveField('none')}
               placeholder="you@example.com"
               className={inputClass}
             />
@@ -83,6 +105,8 @@ function LoginForm() {
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
+                onFocus={() => setActiveField('password')}
+                onBlur={() => setActiveField('none')}
                 placeholder="••••••••"
                 className={inputClass + ' pr-12'}
               />

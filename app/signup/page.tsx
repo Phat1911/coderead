@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/ui/Navbar'
+import OwlController from '@/components/ui/OwlController'
 
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
@@ -26,6 +27,9 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [activeField, setActiveField] = useState<'none' | 'username' | 'email' | 'password'>('none')
+  const usernameRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,6 +41,10 @@ export default function SignupPage() {
     }
     if (!/^[a-zA-Z0-9_]+$/.test(username.trim())) {
       setError('Username can only contain letters, numbers, and underscores')
+      return
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+      setError('Please enter a valid email address')
       return
     }
 
@@ -102,16 +110,28 @@ export default function SignupPage() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Create account</h1>
             <p className="text-gray-500 dark:text-gray-400 mb-8">Track your progress across all challenges</p>
 
+            <div className="flex justify-center mb-6">
+              <OwlController
+                activeField={activeField}
+                showPassword={showPassword}
+                usernameRef={usernameRef}
+                emailRef={emailRef}
+              />
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Username
                 </label>
                 <input
+                  ref={usernameRef}
                   type="text"
                   required
                   value={username}
                   onChange={e => setUsername(e.target.value)}
+                  onFocus={() => setActiveField('username')}
+                  onBlur={() => setActiveField('none')}
                   placeholder="Your username"
                   className={inputClass}
                 />
@@ -125,10 +145,14 @@ export default function SignupPage() {
                   Email
                 </label>
                 <input
-                  type="email"
+                  ref={emailRef}
+                  type="text"
+                  inputMode="email"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
+                  onFocus={() => setActiveField('email')}
+                  onBlur={() => setActiveField('none')}
                   placeholder="you@example.com"
                   className={inputClass}
                 />
@@ -145,6 +169,8 @@ export default function SignupPage() {
                     minLength={6}
                     value={password}
                     onChange={e => setPassword(e.target.value)}
+                    onFocus={() => setActiveField('password')}
+                    onBlur={() => setActiveField('none')}
                     placeholder="Min 6 characters"
                     className={inputClass + ' pr-12'}
                   />

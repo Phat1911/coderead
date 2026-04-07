@@ -59,6 +59,8 @@
 | `components/ui/ThemeProvider.tsx` | Client | Manages light/dark mode state. Reads OS preference and localStorage on mount. Exposes useTheme() hook. SSR-safe - all browser API access is inside useEffect |
 | `components/ui/ThemeToggle.tsx` | Client | Sun/moon icon button in the navbar. Calls toggle() from useTheme() to switch between light and dark |
 | `components/ui/NavbarAuth.tsx` | Client | Shows Sign in link when logged out, Profile link when logged in. Uses onAuthStateChange to react to login/logout in real time |
+| `components/ui/OwlMascot.tsx` | Client | The animated owl SVG that sits above the login/signup form. Its only job is to draw the owl and play the correct animation based on props it receives — it has no logic of its own. It has four visual states: **idle** (stares straight at the user), **tracking** (head bows forward and pupils glance down-left/right, following where the cursor is in the input), **hiding** (both wings swing up to cover its eyes when the user types a password), **peeking** (right wing stays up, left wing drops halfway to sneak one eye open when "show password" is toggled). Everything else — which state to use, when to switch — is decided outside this component |
+| `components/ui/OwlController.tsx` | Client | The brain that decides what the owl should be doing at any given moment. It sits between the form pages (login/signup) and OwlMascot. The pages tell it two things: which field is currently focused (`activeField`) and whether the password is visible (`showPassword`). From those two inputs it works out which owl mode to show, and how far left/right the pupils should shift based on where the user's cursor is in the input. It then passes those values down to OwlMascot to render. Pages don't talk to OwlMascot directly — they only talk to OwlController |
 
 ### Data & Types
 
@@ -75,6 +77,7 @@
 | `lib/supabase/client.ts` | Browser-side Supabase client using createBrowserClient from @supabase/ssr. Used in Client Components |
 | `lib/supabase/server.ts` | Server-side Supabase client using createServerClient. Reads/sets cookies via next/headers. Used in Server Components and Route Handlers |
 | `lib/supabase/middleware.ts` | Supabase session refresh utility for proxy.ts. Calls updateSession() which refreshes the auth token and returns { supabaseResponse, user } |
+| `lib/hooks/useOwlTracking.ts` | Custom hook. Attaches input/keyup/click listeners to an input ref and reads selectionStart to determine cursor position. Maps cursor fraction (0–1) to pupilX (-0.6 to 0.6). Returns { pupilX, pupilY: 0 }. Smoothly resets to 0 on blur after 300ms |
 
 ### Config & Docs
 
@@ -120,7 +123,9 @@ D:\coderead
 │   ├── ui/
 │   │   ├── ThemeProvider.tsx         # Light/dark state management
 │   │   ├── ThemeToggle.tsx           # Sun/moon toggle button
-│   │   └── NavbarAuth.tsx            # Auth-aware nav links (Sign in / Profile)
+│   │   ├── NavbarAuth.tsx            # Auth-aware nav links (Sign in / Profile)
+│   │   ├── OwlMascot.tsx             # Animated SVG owl (idle/tracking/hiding/peeking)
+│   │   └── OwlController.tsx         # Owl state router, wraps OwlMascot
 │   └── challenge/
 │       ├── ChallengeView.tsx         # Interactive reveal UI
 │       └── ChallengeFilters.tsx      # Difficulty + language filter bar
@@ -133,6 +138,8 @@ D:\coderead
 │
 ├── lib/
 │   ├── highlighter.ts                # Shiki singleton, highlight() function
+│   ├── hooks/
+│   │   └── useOwlTracking.ts         # Cursor-tracking hook for owl pupils
 │   └── supabase/
 │       ├── client.ts                 # Browser-side Supabase client
 │       ├── server.ts                 # Server-side Supabase client
@@ -257,8 +264,8 @@ Total static pages: 26. /profile and /auth/callback require server runtime.
 | `app/layout.tsx` | Server | Root shell, anti-FOUC script, ThemeProvider wrapper |
 | `app/page.tsx` | Server | Landing page |
 | `app/not-found.tsx` | Server | 404 page |
-| `app/login/page.tsx` | Client | Email/password login form, redirects on success |
-| `app/signup/page.tsx` | Client | Email/password signup form, shows confirmation state |
+| `app/login/page.tsx` | Client | Email/password login form, redirects on success. Hosts OwlController — owl tracks email cursor, hides/peeks on password |
+| `app/signup/page.tsx` | Client | Email/password signup form, shows confirmation state. Hosts OwlController — owl tracks username/email cursors, hides/peeks on password |
 | `app/profile/page.tsx` | Server | Protected progress dashboard, reads user_progress |
 | `app/auth/callback/route.ts` | Route Handler | Exchanges auth code for session |
 | `app/challenges/page.tsx` | Server | Challenge list shell, passes data to ChallengeFilters |
@@ -268,6 +275,9 @@ Total static pages: 26. /profile and /auth/callback require server runtime.
 | `NavbarAuth.tsx` | Client | Auth-aware nav: Sign in or Profile link via onAuthStateChange |
 | `ThemeProvider.tsx` | Client | Theme state, useTheme() hook |
 | `ThemeToggle.tsx` | Client | Toggle button, reads useTheme() |
+| `OwlMascot.tsx` | Client | Draws the owl and plays animations. Knows nothing about the form — just receives a mode and pupil coordinates and renders accordingly. No state, no hooks |
+| `OwlController.tsx` | Client | Decides what the owl should do based on which field is focused and whether the password is shown. The only component pages need to interact with — they never touch OwlMascot directly |
+| `useOwlTracking` (hook) | Client | Watches the cursor position inside an input and returns a left/right float for the pupils to follow. Smoothly resets to center when the input loses focus |
 
 ---
 
