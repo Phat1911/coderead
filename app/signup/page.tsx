@@ -30,6 +30,7 @@ export default function SignupPage() {
   const [activeField, setActiveField] = useState<'none' | 'username' | 'email' | 'password'>('none')
   const usernameRef = useRef<HTMLInputElement>(null)
   const emailRef = useRef<HTMLInputElement>(null)
+  const passwordRef = useRef<HTMLInputElement>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -164,6 +165,7 @@ export default function SignupPage() {
                 </label>
                 <div className="relative">
                   <input
+                    ref={passwordRef}
                     type={showPassword ? 'text' : 'password'}
                     required
                     minLength={6}
@@ -176,7 +178,7 @@ export default function SignupPage() {
                   />
                   <button
                     type="button"
-                    onClick={() => setShowPassword(v => !v)}
+                    onClick={() => { setShowPassword(v => !v); passwordRef.current?.focus() }}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
