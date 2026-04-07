@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Challenge } from '@/types/challenge'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import { createClient } from '@/lib/supabase/client'
+import NavbarAuth from '@/components/ui/NavbarAuth'
 
 interface ChallengeViewProps {
   challenge: Challenge
@@ -20,6 +22,26 @@ const difficultyColor: Record<string, string> = {
 
 export default function ChallengeView({ challenge, prev, next, highlightedCode }: ChallengeViewProps) {
   const [revealed, setRevealed] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setIsLoggedIn(!!user)
+    })
+  }, [])
+
+  async function handleReveal() {
+    setRevealed(true)
+    if (!isLoggedIn) return
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    await supabase.from('user_progress').upsert(
+      { user_id: user.id, challenge_id: challenge.id },
+      { onConflict: 'user_id,challenge_id' }
+    )
+  }
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-200">
@@ -33,6 +55,7 @@ export default function ChallengeView({ challenge, prev, next, highlightedCode }
           <Link href="/challenges" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
             Challenges
           </Link>
+          <NavbarAuth />
           <ThemeToggle />
         </div>
       </nav>
@@ -85,7 +108,7 @@ export default function ChallengeView({ challenge, prev, next, highlightedCode }
         {/* Reveal */}
         {!revealed ? (
           <button
-            onClick={() => setRevealed(true)}
+            onClick={handleReveal}
             className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 py-3.5 rounded-2xl font-semibold hover:bg-gray-700 dark:hover:bg-gray-100 transition-colors text-sm"
           >
             Reveal Explanation

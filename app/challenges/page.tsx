@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { challenges } from '@/data/challenges'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import NavbarAuth from '@/components/ui/NavbarAuth'
 import ChallengeFilters from '@/components/challenge/ChallengeFilters'
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default function ChallengesPage() {
           <Link href="/challenges" className="text-sm font-medium text-gray-900 dark:text-white">
             Challenges
           </Link>
+          <NavbarAuth />
           <ThemeToggle />
         </div>
       </nav>

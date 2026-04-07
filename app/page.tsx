@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { challenges } from '@/data/challenges'
 import { Difficulty } from '@/types/challenge'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import NavbarAuth from '@/components/ui/NavbarAuth'
 
 const difficultyColor: Record<Difficulty, string> = {
   beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -22,6 +23,7 @@ export default function Home() {
           <Link href="/challenges" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
             Challenges
           </Link>
+          <NavbarAuth />
           <ThemeToggle />
         </div>
       </nav>
