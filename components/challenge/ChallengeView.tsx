@@ -9,6 +9,7 @@ interface ChallengeViewProps {
   challenge: Challenge
   prev: string | null
   next: string | null
+  highlightedCode: string
 }
 
 const difficultyColor: Record<string, string> = {
@@ -17,7 +18,7 @@ const difficultyColor: Record<string, string> = {
   advanced: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 }
 
-export default function ChallengeView({ challenge, prev, next }: ChallengeViewProps) {
+export default function ChallengeView({ challenge, prev, next, highlightedCode }: ChallengeViewProps) {
   const [revealed, setRevealed] = useState(false)
 
   return (
@@ -67,9 +68,10 @@ export default function ChallengeView({ challenge, prev, next }: ChallengeViewPr
             </div>
             <span className="text-xs text-gray-500 font-mono">{challenge.language}</span>
           </div>
-          <pre className="p-6 text-sm text-gray-100 overflow-x-auto leading-relaxed font-mono">
-            <code>{challenge.code}</code>
-          </pre>
+          <div
+            className="shiki-wrapper p-6 overflow-x-auto text-sm leading-relaxed [&_pre]:!bg-transparent [&_code]:font-mono"
+            dangerouslySetInnerHTML={{ __html: highlightedCode }}
+          />
         </div>
 
         {/* Question */}
