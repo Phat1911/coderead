@@ -45,6 +45,20 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Hero Video */}
+      <section className="max-w-4xl mx-auto px-6 pb-16">
+        <div className="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-2xl shadow-gray-200/50 dark:shadow-black/50">
+          <video
+            src="/coderead-hero.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="w-full aspect-video object-cover"
+          />
+        </div>
+      </section>
+
       {/* Stats bar */}
       <section className="border-y border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 py-6">
         <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-4 text-center">
