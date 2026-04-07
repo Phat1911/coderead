@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { challenges } from '@/data/challenges'
+import { learningPaths } from '@/data/learningPaths'
 import { Difficulty } from '@/types/challenge'
 import Navbar from '@/components/ui/Navbar'
 
@@ -75,8 +76,56 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Challenges */}
+      {/* Learning Paths */}
       <section className="max-w-4xl mx-auto py-16 px-6">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Learning Paths
+          </h2>
+          <Link href="/learning-paths" className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+            View all
+          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {learningPaths.slice(0, 4).map((path) => (
+            <Link
+              key={path.id}
+              href={`/learning-paths/${path.id}`}
+              className="group block bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-5 hover:border-gray-400 dark:hover:border-gray-600 hover:shadow-md dark:hover:shadow-black/30 transition-all duration-200"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <span className="text-3xl">{path.icon}</span>
+                <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${difficultyColor[path.difficulty]}`}>
+                  {path.difficulty}
+                </span>
+              </div>
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-black dark:group-hover:text-white transition-colors">
+                {path.title}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2">{path.description}</p>
+              <div className="mt-3 flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
+                <span>{path.challengeIds.length} challenges</span>
+                <span>•</span>
+                <span>{path.estimatedTime}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <div className="mt-8 text-center">
+          <Link
+            href="/learning-paths"
+            className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
+          >
+            View all {learningPaths.length} learning paths
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+            </svg>
+          </Link>
+        </div>
+      </section>
+
+      {/* Featured Challenges */}
+      <section className="max-w-4xl mx-auto py-16 px-6 border-t border-gray-100 dark:border-gray-800">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             Featured Challenges

@@ -66,7 +66,14 @@ export default function ChallengeView({ challenge, prev, next, highlightedCode }
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
           {challenge.title}
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 mb-8">{challenge.description}</p>
+        <p className="text-gray-500 dark:text-gray-400 mb-4">{challenge.description}</p>
+        <div className="flex flex-wrap gap-2 mb-8">
+          {challenge.tags && challenge.tags.map((t) => (
+            <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
+              {t}
+            </span>
+          ))}
+        </div>
 
         {/* Code Block */}
         <div className="bg-gray-100 dark:bg-[#080808] rounded-2xl overflow-hidden mb-8 border border-gray-200 dark:border-gray-800">

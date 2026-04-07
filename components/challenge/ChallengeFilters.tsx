@@ -34,11 +34,17 @@ interface ChallengeFiltersProps {
 export default function ChallengeFilters({ challenges }: ChallengeFiltersProps) {
   const [difficulty, setDifficulty] = useState<DifficultyFilter>('all')
   const [language, setLanguage] = useState<Language>('all')
+  const [tag, setTag] = useState<string>('all')
+
+  // Collect all unique tags
+  const allTags = Array.from(new Set(challenges.flatMap(c => c.tags || []))).sort()
+  const tagOptions = [{ label: 'All', value: 'all' }, ...allTags.map(t => ({ label: t, value: t }))]
 
   const filtered = challenges.filter((c) => {
     const matchDifficulty = difficulty === 'all' || c.difficulty === difficulty
     const matchLanguage = language === 'all' || c.language === language
-    return matchDifficulty && matchLanguage
+    const matchTag = tag === 'all' || (c.tags && c.tags.includes(tag))
+    return matchDifficulty && matchLanguage && matchTag
   })
 
   const percentage = challenges.length > 0
@@ -110,6 +116,30 @@ export default function ChallengeFilters({ challenges }: ChallengeFiltersProps) 
             ))}
           </div>
         </div>
+
+        {/* Tag filter */}
+        {allTags.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider w-20 shrink-0">
+              Tag
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {tagOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setTag(opt.value)}
+                  className={`min-h-[44px] px-4 py-2 rounded-xl text-sm font-medium border transition-all duration-150 ${
+                    tag === opt.value
+                      ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
+                      : 'bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Challenge list */}
@@ -117,7 +147,7 @@ export default function ChallengeFilters({ challenges }: ChallengeFiltersProps) 
         <div className="text-center py-16 text-gray-400 dark:text-gray-600">
           <p className="text-sm">No challenges match these filters.</p>
           <button
-            onClick={() => { setDifficulty('all'); setLanguage('all') }}
+            onClick={() => { setDifficulty('all'); setLanguage('all'); setTag('all') }}
             className="mt-3 text-sm text-gray-600 dark:text-gray-400 underline hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             Clear filters
@@ -141,9 +171,13 @@ export default function ChallengeFilters({ challenges }: ChallengeFiltersProps) 
                       {challenge.title}
                     </h2>
                     <p className="text-sm text-gray-500 dark:text-gray-400">{challenge.description}</p>
-                    <span className="mt-2 inline-block text-xs font-mono text-gray-400 dark:text-gray-500">
-                      {challenge.language}
-                    </span>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {challenge.tags && challenge.tags.map((t) => (
+                        <span key={t} className="text-xs px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full shrink-0 ${difficultyColor[challenge.difficulty]}`}>

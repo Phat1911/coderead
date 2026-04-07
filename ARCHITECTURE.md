@@ -26,8 +26,10 @@
 |------|------|---------|
 | `app/layout.tsx` | Server | Root HTML shell. Loads fonts, wraps all pages in ThemeProvider, injects anti-FOUC script in head to prevent dark mode flash on Vercel |
 | `app/globals.css` | CSS | Global styles, CSS custom property tokens for light/dark mode, Shiki syntax highlight variable rules |
-| `app/page.tsx` | Server | Landing page at /. Hero section, stats bar, featured challenges preview, navbar |
+| `app/page.tsx` | Server | Landing page at /. Hero section, stats bar, learning paths preview, featured challenges preview, navbar |
 | `app/not-found.tsx` | Server | Custom 404 page. On-brand design with links back to home and /challenges |
+| `app/learning-paths/page.tsx` | Server | Learning paths listing page. Shows all curated paths with difficulty, time, and challenge count |
+| `app/learning-paths/[id]/page.tsx` | Server | Individual learning path detail page. Lists challenges in the path with a "Start Path" button |
 | `app/login/page.tsx` | Client | Email/password login form. Uses useSearchParams (wrapped in Suspense). Calls Supabase signInWithPassword. Redirects to returnUrl after success |
 | `app/signup/page.tsx` | Client | Email/password signup form. Calls Supabase signUp with emailRedirectTo for confirmation. Shows success state with email confirmation message |
 | `app/profile/page.tsx` | Server | Protected by proxy.ts. Fetches user session and user_progress from Supabase. Shows overall progress bar (X of 20), percentage, and checklist of all 20 challenges with green checkmark for completed ones |
@@ -49,8 +51,8 @@
 
 | File | Type | Purpose |
 |------|------|---------|
-| `components/challenge/ChallengeView.tsx` | Client | Interactive challenge page UI. Handles the reveal/hide explanation interaction via useState. Receives pre-highlighted code HTML as a prop and renders it via dangerouslySetInnerHTML |
-| `components/challenge/ChallengeFilters.tsx` | Client | Filter bar on /challenges. Lets users filter by difficulty (All / Beginner / Intermediate / Advanced) and language (All / JavaScript / TypeScript / Python). Filters work together with AND logic. Shows challenge count and progress indicator |
+| `components/challenge/ChallengeView.tsx` | Client | Interactive challenge page UI. Handles the reveal/hide explanation interaction via useState. Receives pre-highlighted code HTML as a prop and renders it via dangerouslySetInnerHTML. Displays concept tags below the description |
+| `components/challenge/ChallengeFilters.tsx` | Client | Filter bar on /challenges. Lets users filter by difficulty, language, and concept tags. Filters work together with AND logic. Shows challenge count and progress indicator. Displays tags on each challenge card |
 
 ### Components - UI
 
@@ -66,8 +68,8 @@
 
 | File | Purpose |
 |------|---------|
-| `data/challenges.ts` | All 20 hardcoded challenges. Each challenge has id, title, description, code, language, difficulty, question, explanation, and keyConceptsToSpot. Languages: JavaScript, TypeScript, Python. Difficulties: Beginner, Intermediate, Advanced |
-| `types/challenge.ts` | TypeScript type definitions. Exports the Challenge interface and Difficulty / Language union types |
+| `data/challenges.ts` | All 20 hardcoded challenges. Each challenge has id, title, description, code, language, difficulty, question, explanation, keyConceptsToSpot, and tags. Languages: JavaScript, TypeScript, Python. Difficulties: Beginner, Intermediate, Advanced |
+| `types/challenge.ts` | TypeScript type definitions. Exports the Challenge interface (with optional tags) and Difficulty / Language union types |
 
 ### Lib (Utilities)
 
@@ -127,14 +129,15 @@ D:\coderead
 │   │   ├── OwlMascot.tsx             # Animated SVG owl (idle/tracking/hiding/peeking)
 │   │   └── OwlController.tsx         # Owl state router, wraps OwlMascot
 │   └── challenge/
-│       ├── ChallengeView.tsx         # Interactive reveal UI
-│       └── ChallengeFilters.tsx      # Difficulty + language filter bar
+│       ├── ChallengeView.tsx         # Interactive reveal UI, displays concept tags
+│       └── ChallengeFilters.tsx      # Difficulty, language, and tag filter bar
 │
 ├── data/
-│   └── challenges.ts                 # 20 hardcoded challenges
+│   ├── challenges.ts                 # 20 hardcoded challenges with concept tags
+│   └── learningPaths.ts              # Curated learning paths with challenge sequences
 │
 ├── types/
-│   └── challenge.ts                  # TypeScript interfaces and union types
+│   └── challenge.ts                  # TypeScript interfaces (Challenge, LearningPath) and union types
 │
 ├── lib/
 │   ├── highlighter.ts                # Shiki singleton, highlight() function
@@ -235,6 +238,7 @@ interface Challenge {
   question: string             // What the user must answer
   explanation: string          // Plain English explanation revealed on click
   keyConceptsToSpot: string[]  // Concept tags shown after reveal
+  tags?: string[]              // Concept tags for filtering and discovery
 }
 ```
 

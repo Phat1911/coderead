@@ -12,4 +12,15 @@ export interface Challenge {
   question: string
   explanation: string
   keyConceptsToSpot: string[]
+  tags?: string[]
+}
+
+export interface LearningPath {
+  id: string
+  title: string
+  description: string
+  difficulty: Difficulty
+  estimatedTime: string
+  challengeIds: string[]
+  icon: string
 }

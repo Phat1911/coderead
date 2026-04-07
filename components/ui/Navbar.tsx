@@ -4,7 +4,7 @@ import ThemeToggle from '@/components/ui/ThemeToggle'
 import NavbarAuth from '@/components/ui/NavbarAuth'
 
 interface NavbarProps {
-  activeLink?: 'challenges' | 'profile'
+  activeLink?: 'challenges' | 'profile' | 'learning-paths'
 }
 
 export default function Navbar({ activeLink }: NavbarProps) {
@@ -24,6 +24,16 @@ export default function Navbar({ activeLink }: NavbarProps) {
           }`}
         >
           Challenges
+        </Link>
+        <Link
+          href="/learning-paths"
+          className={`text-sm transition-colors ${
+            activeLink === 'learning-paths'
+              ? 'font-medium text-gray-900 dark:text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          Learning Paths
         </Link>
         <NavbarAuth />
         <ThemeToggle />
