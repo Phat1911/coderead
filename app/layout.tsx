@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   },
   description: 'Practice reading real code snippets and sharpen your ability to work with AI effectively. Free coding challenges for developers.',
   keywords: ['code reading', 'AI coding', 'programming challenges', 'learn to code', 'JavaScript', 'TypeScript'],
+  metadataBase: new URL('https://codeoneread.tech'),
   icons: {
     icon: '/favicon.ico',
     apple: '/owl-180.png',
