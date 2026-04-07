@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { getClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { challenges } from '@/data/challenges'
@@ -11,16 +11,15 @@ export const metadata: Metadata = {
 }
 
 export default async function ProfilePage() {
-  const supabase = await createClient()
+  const supabase = await getClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
 
-  const { data: progress } = await supabase
-    .from('user_progress')
-    .select('challenge_id, completed_at')
-    .eq('user_id', user.id)
-    .order('completed_at', { ascending: false })
+  const [{ data: profile }, { data: progress }] = await Promise.all([
+    supabase.from('profiles').select('username').eq('id', user.id).single(),
+    supabase.from('user_progress').select('challenge_id, completed_at').eq('user_id', user.id).order('completed_at', { ascending: false }),
+  ])
 
   const completedIds = new Set((progress ?? []).map(p => p.challenge_id))
   const totalCompleted = completedIds.size
@@ -29,7 +28,7 @@ export default async function ProfilePage() {
 
   async function signOut() {
     'use server'
-    const supabase = await createClient()
+    const supabase = await getClient()
     await supabase.auth.signOut()
     redirect('/')
   }
@@ -43,7 +42,9 @@ export default async function ProfilePage() {
         {/* Header */}
         <div className="flex items-start justify-between mb-10">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">My Profile</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+              {profile?.username ? `@${profile.username}` : 'My Profile'}
+            </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
           </div>
           <form action={signOut}>

@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import ThemeToggle from '@/components/ui/ThemeToggle'
+import Navbar from '@/components/ui/Navbar'
 
 export default function SignupPage() {
-  const router = useRouter()
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -17,35 +16,56 @@ export default function SignupPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    setLoading(true)
 
+    if (username.trim().length < 3) {
+      setError('Username must be at least 3 characters')
+      return
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(username.trim())) {
+      setError('Username can only contain letters, numbers, and underscores')
+      return
+    }
+
+    setLoading(true)
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({
+
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: { username: username.trim() },
       },
     })
 
-    if (error) {
-      setError(error.message)
+    if (signUpError) {
+      setError(signUpError.message)
       setLoading(false)
       return
+    }
+
+    if (data.user) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ username: username.trim() })
+        .eq('id', data.user.id)
+
+      if (profileError?.code === '23505') {
+        setError('That username is already taken. Please choose another.')
+        setLoading(false)
+        return
+      }
     }
 
     setSuccess(true)
     setLoading(false)
   }
 
+  const inputClass = 'w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-colors'
+
   return (
     <main className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-200">
-      <nav className="border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="font-bold text-lg tracking-tight text-gray-900 dark:text-white">
-          CodeRead
-        </Link>
-        <ThemeToggle />
-      </nav>
+      <Navbar />
 
       <div className="max-w-md mx-auto px-6 py-20">
         {success ? (
@@ -71,6 +91,23 @@ export default function SignupPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  placeholder="e.g. phat_dev"
+                  className={inputClass}
+                />
+                <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
+                  Letters, numbers, and underscores only. At least 3 characters.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Email
                 </label>
                 <input
@@ -79,9 +116,10 @@ export default function SignupPage() {
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-colors"
+                  className={inputClass}
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                   Password
@@ -93,7 +131,7 @@ export default function SignupPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Min 6 characters"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-colors"
+                  className={inputClass}
                 />
               </div>
 
