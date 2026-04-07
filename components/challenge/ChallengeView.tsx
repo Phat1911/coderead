@@ -59,14 +59,14 @@ export default function ChallengeView({ challenge, prev, next, highlightedCode }
         <p className="text-gray-500 dark:text-gray-400 mb-8">{challenge.description}</p>
 
         {/* Code Block */}
-        <div className="bg-[#0f0f0f] dark:bg-[#080808] rounded-2xl overflow-hidden mb-8 border border-gray-800">
-          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-800">
+        <div className="bg-gray-100 dark:bg-[#080808] rounded-2xl overflow-hidden mb-8 border border-gray-200 dark:border-gray-800">
+          <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 dark:border-gray-800">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-red-500/70" />
               <span className="w-3 h-3 rounded-full bg-yellow-500/70" />
               <span className="w-3 h-3 rounded-full bg-green-500/70" />
             </div>
-            <span className="text-xs text-gray-500 font-mono">{challenge.language}</span>
+            <span className="text-xs text-gray-400 dark:text-gray-500 font-mono">{challenge.language}</span>
           </div>
           <div
             className="shiki-wrapper p-6 overflow-x-auto text-sm leading-relaxed [&_pre]:!bg-transparent [&_code]:font-mono"
