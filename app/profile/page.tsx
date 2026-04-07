@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { challenges } from '@/data/challenges'
-import ThemeToggle from '@/components/ui/ThemeToggle'
+import Navbar from '@/components/ui/Navbar'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -36,17 +36,7 @@ export default async function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-200">
-      <nav className="sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="font-bold text-lg tracking-tight text-gray-900 dark:text-white">
-          CodeRead
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/challenges" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-            Challenges
-          </Link>
-          <ThemeToggle />
-        </div>
-      </nav>
+      <Navbar />
 
       <div className="max-w-3xl mx-auto px-6 py-12">
 

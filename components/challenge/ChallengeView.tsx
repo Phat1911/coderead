@@ -3,9 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Challenge } from '@/types/challenge'
-import ThemeToggle from '@/components/ui/ThemeToggle'
 import { createClient } from '@/lib/supabase/client'
-import NavbarAuth from '@/components/ui/NavbarAuth'
+import Navbar from '@/components/ui/Navbar'
 
 interface ChallengeViewProps {
   challenge: Challenge
@@ -46,19 +45,7 @@ export default function ChallengeView({ challenge, prev, next, highlightedCode }
   return (
     <main className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-200">
 
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="font-bold text-lg tracking-tight text-gray-900 dark:text-white">
-          CodeRead
-        </Link>
-        <div className="flex items-center gap-4">
-          <Link href="/challenges" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-            Challenges
-          </Link>
-          <NavbarAuth />
-          <ThemeToggle />
-        </div>
-      </nav>
+      <Navbar activeLink="challenges" />
 
       <div className="max-w-3xl mx-auto py-10 px-6">
 

@@ -1,8 +1,7 @@
 import Link from 'next/link'
 import { challenges } from '@/data/challenges'
 import { Difficulty } from '@/types/challenge'
-import ThemeToggle from '@/components/ui/ThemeToggle'
-import NavbarAuth from '@/components/ui/NavbarAuth'
+import Navbar from '@/components/ui/Navbar'
 
 const difficultyColor: Record<Difficulty, string> = {
   beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -14,19 +13,7 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-200">
 
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-md px-6 py-4 flex items-center justify-between">
-        <span className="font-bold text-lg tracking-tight text-gray-900 dark:text-white">
-          CodeRead
-        </span>
-        <div className="flex items-center gap-4">
-          <Link href="/challenges" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-            Challenges
-          </Link>
-          <NavbarAuth />
-          <ThemeToggle />
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero */}
       <section className="max-w-4xl mx-auto px-6 pt-24 pb-20 text-center">
