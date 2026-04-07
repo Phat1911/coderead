@@ -14,8 +14,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CodeRead - Learn to Read Code",
-  description: "Practice reading real code snippets and sharpen your ability to work with AI effectively.",
+  title: {
+    default: 'CodeRead - Learn to Read Code',
+    template: '%s | CodeRead',
+  },
+  description: 'Practice reading real code snippets and sharpen your ability to work with AI effectively. Free coding challenges for developers.',
+  keywords: ['code reading', 'AI coding', 'programming challenges', 'learn to code', 'JavaScript', 'TypeScript'],
+  openGraph: {
+    title: 'CodeRead - Learn to Read Code',
+    description: 'Practice reading real code snippets and sharpen your ability to work with AI effectively.',
+    url: 'https://codeoneread.tech',
+    siteName: 'CodeRead',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'CodeRead - Learn to Read Code',
+    description: 'Practice reading real code snippets and sharpen your ability to work with AI effectively.',
+  },
 };
 
 export default function RootLayout({

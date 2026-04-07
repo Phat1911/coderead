@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { challenges } from '@/data/challenges'
 import { notFound } from 'next/navigation'
 import ChallengeView from '@/components/challenge/ChallengeView'
@@ -5,6 +6,21 @@ import { highlight } from '@/lib/highlighter'
 
 interface PageProps {
   params: Promise<{ id: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params
+  const challenge = challenges.find((c) => c.id === id)
+  if (!challenge) return { title: 'Challenge not found' }
+  return {
+    title: `${challenge.title} | CodeRead`,
+    description: challenge.description,
+    openGraph: {
+      title: `${challenge.title} | CodeRead`,
+      description: challenge.description,
+      url: `https://codeoneread.tech/challenges/${id}`,
+    },
+  }
 }
 
 export default async function ChallengePage({ params }: PageProps) {

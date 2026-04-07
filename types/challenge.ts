@@ -1,3 +1,5 @@
+export type Language = 'javascript' | 'typescript' | 'python'
+
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced'
 
 export interface Challenge {
@@ -5,7 +7,7 @@ export interface Challenge {
   title: string
   description: string
   code: string
-  language: string
+  language: Language
   difficulty: Difficulty
   question: string
   explanation: string
