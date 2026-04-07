@@ -10,7 +10,8 @@
 | Language | TypeScript | Type safety across all files |
 | Styling | Tailwind CSS | Utility-first responsive styling |
 | Syntax Highlighting | Shiki | Server-side code highlighting with dual theme |
-| Database | Supabase (Phase 3+) | User accounts, challenge storage |
+| Database | Supabase | User accounts, challenge progress storage |
+| Auth | @supabase/supabase-js + @supabase/ssr | Authentication, session management, SSR cookie handling |
 | Hosting | Vercel | Deployment, CDN, auto-deploy on push |
 | Version Control | GitHub | Source of truth for all code |
 | Domain | codeoneread.tech | Custom domain via get.tech |
@@ -27,6 +28,15 @@
 | `app/globals.css` | CSS | Global styles, CSS custom property tokens for light/dark mode, Shiki syntax highlight variable rules |
 | `app/page.tsx` | Server | Landing page at /. Hero section, stats bar, featured challenges preview, navbar |
 | `app/not-found.tsx` | Server | Custom 404 page. On-brand design with links back to home and /challenges |
+| `app/login/page.tsx` | Client | Email/password login form. Uses useSearchParams (wrapped in Suspense). Calls Supabase signInWithPassword. Redirects to returnUrl after success |
+| `app/signup/page.tsx` | Client | Email/password signup form. Calls Supabase signUp with emailRedirectTo for confirmation. Shows success state with email confirmation message |
+| `app/profile/page.tsx` | Server | Protected by proxy.ts. Fetches user session and user_progress from Supabase. Shows overall progress bar (X of 20), percentage, and checklist of all 20 challenges with green checkmark for completed ones |
+
+### App - Auth
+
+| File | Type | Purpose |
+|------|------|---------|
+| `app/auth/callback/route.ts` | Route Handler | Exchanges OAuth code for session after email confirmation. Redirects to / on success or /login?error=auth_failed on failure |
 
 ### App - Challenges
 
@@ -48,6 +58,7 @@
 |------|------|---------|
 | `components/ui/ThemeProvider.tsx` | Client | Manages light/dark mode state. Reads OS preference and localStorage on mount. Exposes useTheme() hook. SSR-safe - all browser API access is inside useEffect |
 | `components/ui/ThemeToggle.tsx` | Client | Sun/moon icon button in the navbar. Calls toggle() from useTheme() to switch between light and dark |
+| `components/ui/NavbarAuth.tsx` | Client | Shows Sign in link when logged out, Profile link when logged in. Uses onAuthStateChange to react to login/logout in real time |
 
 ### Data & Types
 
@@ -61,11 +72,15 @@
 | File | Purpose |
 |------|---------|
 | `lib/highlighter.ts` | Shiki syntax highlighting utility. Singleton pattern - creates the highlighter once and reuses it. Exports highlight(code, lang) async function that returns pre-rendered HTML with dual-theme CSS variables (--shiki-light and --shiki-dark) |
+| `lib/supabase/client.ts` | Browser-side Supabase client using createBrowserClient from @supabase/ssr. Used in Client Components |
+| `lib/supabase/server.ts` | Server-side Supabase client using createServerClient. Reads/sets cookies via next/headers. Used in Server Components and Route Handlers |
+| `lib/supabase/middleware.ts` | Supabase session refresh utility for proxy.ts. Calls updateSession() which refreshes the auth token and returns { supabaseResponse, user } |
 
 ### Config & Docs
 
 | File | Purpose |
 |------|---------|
+| `proxy.ts` | Next.js 16 proxy (middleware). Exported as `proxy` function (not `middleware`). Protects /profile route - redirects unauthenticated users to /login?returnUrl=/profile |
 | `ARCHITECTURE.md` | This file. Complete system map |
 | `ROADMAP.md` | Product roadmap by phase with checkbox tracking |
 | `TEAM.md` | AI team roles (Director, Orion, Claude Code, Copilot Pro, Google Stitch, Codex) |
@@ -87,6 +102,15 @@ D:\coderead
 │   ├── page.tsx                      # Landing page (/)
 │   ├── not-found.tsx                 # Custom 404 page
 │   ├── favicon.ico
+│   ├── login/
+│   │   └── page.tsx                  # Email/password login form (/login)
+│   ├── signup/
+│   │   └── page.tsx                  # Email/password signup form (/signup)
+│   ├── profile/
+│   │   └── page.tsx                  # User progress dashboard (/profile)
+│   ├── auth/
+│   │   └── callback/
+│   │       └── route.ts              # OAuth callback handler (/auth/callback)
 │   └── challenges/
 │       ├── page.tsx                  # Challenge list with filters (/challenges)
 │       └── [id]/
@@ -95,7 +119,8 @@ D:\coderead
 ├── components/
 │   ├── ui/
 │   │   ├── ThemeProvider.tsx         # Light/dark state management
-│   │   └── ThemeToggle.tsx           # Sun/moon toggle button
+│   │   ├── ThemeToggle.tsx           # Sun/moon toggle button
+│   │   └── NavbarAuth.tsx            # Auth-aware nav links (Sign in / Profile)
 │   └── challenge/
 │       ├── ChallengeView.tsx         # Interactive reveal UI
 │       └── ChallengeFilters.tsx      # Difficulty + language filter bar
@@ -107,10 +132,15 @@ D:\coderead
 │   └── challenge.ts                  # TypeScript interfaces and union types
 │
 ├── lib/
-│   └── highlighter.ts                # Shiki singleton, highlight() function
+│   ├── highlighter.ts                # Shiki singleton, highlight() function
+│   └── supabase/
+│       ├── client.ts                 # Browser-side Supabase client
+│       ├── server.ts                 # Server-side Supabase client
+│       └── middleware.ts             # updateSession() for proxy.ts
 │
 ├── public/                           # Static assets
 │
+├── proxy.ts                          # Next.js 16 middleware (auth protection)
 ├── ARCHITECTURE.md
 ├── ROADMAP.md
 └── TEAM.md
@@ -158,6 +188,28 @@ Tailwind dark: variants switch instantly (CSS only, no re-render)
 Shiki: .dark .shiki-wrapper span switches to --shiki-dark colors
 ```
 
+### Auth flow (Phase 3)
+
+```
+User visits /profile (unauthenticated)
+        down
+proxy.ts intercepts request
+        down
+lib/supabase/middleware.ts updateSession() - no valid session found
+        down
+proxy.ts redirects to /login?returnUrl=/profile
+        down
+User submits login form - Supabase signInWithPassword
+        down
+Session cookie set - router.push(returnUrl)
+        down
+User lands on /profile - proxy.ts allows through
+        down
+app/profile/page.tsx fetches user_progress from Supabase
+        down
+Renders progress bar and challenge checklist
+```
+
 ---
 
 ## Core Data Model
@@ -188,10 +240,13 @@ interface Challenge {
 | `/` | Static (SSG) | 1 | Content never changes |
 | `/challenges` | Static (SSG) | 1 | Hardcoded data, filters run client-side |
 | `/challenges/[id]` | Static (SSG) | 20 | generateStaticParams pre-builds all 20 |
+| `/login` | Static (SSG) | 1 | Static form shell, dynamic via client JS |
+| `/signup` | Static (SSG) | 1 | Static form shell, dynamic via client JS |
+| `/profile` | Dynamic (f) | 1 | Protected route, fetches live user data |
+| `/auth/callback` | Dynamic (f) | 1 | Route handler, exchanges auth code |
 | `/_not-found` | Static | 1 | Custom 404 |
-| Future user pages | SSR | - | Needs auth + dynamic data |
 
-Total static pages: 25. All served from Vercel CDN with no server runtime needed.
+Total static pages: 26. /profile and /auth/callback require server runtime.
 
 ---
 
@@ -202,44 +257,26 @@ Total static pages: 25. All served from Vercel CDN with no server runtime needed
 | `app/layout.tsx` | Server | Root shell, anti-FOUC script, ThemeProvider wrapper |
 | `app/page.tsx` | Server | Landing page |
 | `app/not-found.tsx` | Server | 404 page |
+| `app/login/page.tsx` | Client | Email/password login form, redirects on success |
+| `app/signup/page.tsx` | Client | Email/password signup form, shows confirmation state |
+| `app/profile/page.tsx` | Server | Protected progress dashboard, reads user_progress |
+| `app/auth/callback/route.ts` | Route Handler | Exchanges auth code for session |
 | `app/challenges/page.tsx` | Server | Challenge list shell, passes data to ChallengeFilters |
 | `app/challenges/[id]/page.tsx` | Server | Runs Shiki, passes data to ChallengeView |
 | `ChallengeView.tsx` | Client | Reveal interaction (useState) |
 | `ChallengeFilters.tsx` | Client | Filter state (useState), renders filtered cards |
+| `NavbarAuth.tsx` | Client | Auth-aware nav: Sign in or Profile link via onAuthStateChange |
 | `ThemeProvider.tsx` | Client | Theme state, useTheme() hook |
 | `ThemeToggle.tsx` | Client | Toggle button, reads useTheme() |
-
----
-
-## Phase 3 - Supabase Integration Plan
-
-When user accounts are added:
-
-```
-Supabase
-├── auth.users          # Managed by Supabase Auth
-├── challenges          # Migrated from data/challenges.ts
-└── user_progress       # Which challenges each user completed
-    ├── user_id (FK)
-    ├── challenge_id (FK)
-    └── completed_at
-```
-
-Data flow changes:
-- Challenges fetched from Supabase instead of hardcoded file
-- Progress saved to Supabase on reveal click
-- User session checked in layout.tsx via Supabase Auth
 
 ---
 
 ## Environment Variables
 
 ```
-# Phase 1 + 2: none needed
-
-# Phase 3+
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+# Active (Phase 3)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ---
