@@ -1,3 +1,21 @@
+/**
+ * @file components/ui/ThemeProvider.tsx
+ * @description Theme persistence is a two-layer problem.
+ *
+ *              Layer 1 — after hydration (this file): reads localStorage, falls back to
+ *              OS preference, provides a toggle that writes back to localStorage and
+ *              syncs the `dark` class on `<html>` so Tailwind's dark variants respond.
+ *
+ *              Layer 2 — before hydration (the inline <script> in app/layout.tsx):
+ *              applies the `dark` class synchronously before any CSS renders, preventing
+ *              a flash of the wrong theme.  suppressHydrationWarning on `<html>` is
+ *              required because the inline script changes the DOM before React can
+ *              reconcile it — React would otherwise warn about the class mismatch.
+ *
+ *              A CSS-only solution (prefers-color-scheme alone) was rejected because
+ *              users should be able to override their OS setting per-site.
+ */
+
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
@@ -14,6 +32,9 @@ const ThemeContext = createContext<ThemeContextValue>({
   toggle: () => {},
 })
 
+/**
+ * Consumes the theme context.  Must be called inside a ThemeProvider.
+ */
 export function useTheme() {
   return useContext(ThemeContext)
 }

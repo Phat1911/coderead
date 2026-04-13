@@ -1,3 +1,19 @@
+/**
+ * @file app/challenges/[id]/page.tsx
+ * @description Every challenge page is pre-rendered at build time — no server runs
+ *              at request time.
+ *
+ *              generateStaticParams enumerates all challenge IDs so Next.js generates
+ *              one static HTML file per challenge.  The Shiki WASM highlighting runs
+ *              once per challenge during that build step, not once per visitor.  The
+ *              result: a challenge page for the 10,000th simultaneous visitor is served
+ *              from CDN cache with the same latency as the 1st.
+ *
+ *              Prev/next navigation IDs are also computed here at build time from the
+ *              challenges array order, encoding the curriculum sequence into the static
+ *              page rather than computing it dynamically per request.
+ */
+
 import type { Metadata } from 'next'
 import { challenges } from '@/data/challenges'
 import { notFound } from 'next/navigation'
@@ -8,6 +24,10 @@ interface PageProps {
   params: Promise<{ id: string }>
 }
 
+/**
+ * Per-challenge Open Graph metadata — makes shared challenge links render a
+ * meaningful preview card rather than falling back to the site-level defaults.
+ */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params
   const challenge = challenges.find((c) => c.id === id)
@@ -44,6 +64,9 @@ export default async function ChallengePage({ params }: PageProps) {
   )
 }
 
+/**
+ * Enumerates every challenge ID so Next.js pre-renders all detail pages at build time.
+ */
 export function generateStaticParams() {
   return challenges.map((c) => ({ id: c.id }))
 }

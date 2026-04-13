@@ -1,3 +1,20 @@
+/**
+ * @file app/profile/page.tsx
+ * @description The profile page demonstrates why server-side auth matters.
+ *
+ *              The redirect happens at the HTTP level — before a single byte of HTML
+ *              is sent — because auth is checked on the server.  A client-side approach
+ *              (useEffect + router.push) would render the page first, then redirect
+ *              after the JS loads and the auth check resolves, causing a flash of
+ *              protected content for unauthenticated users.
+ *
+ *              The inline `'use server'` on signOut is a Next.js Server Action.  The
+ *              browser submits a form POST; the server calls Supabase and redirects.
+ *              No auth token or session data is ever exposed to client-side JavaScript.
+ *              Promise.all for profile + progress fetches is a minor but real win:
+ *              two sequential awaits would double the DB round-trip time.
+ */
+
 import { getClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
@@ -21,10 +38,47 @@ export default async function ProfilePage() {
     supabase.from('user_progress').select('challenge_id, completed_at').eq('user_id', user.id).order('completed_at', { ascending: false }),
   ])
 
+  // ── PROGRESS CALCULATION ──
+  // Set gives O(1) lookup per challenge row — vs O(n) for array.includes() across
+  // potentially hundreds of completed challenges for each of 20+ rendered rows.
   const completedIds = new Set((progress ?? []).map(p => p.challenge_id))
   const totalCompleted = completedIds.size
   const totalChallenges = challenges.length
   const percentage = Math.round((totalCompleted / totalChallenges) * 100)
+
+  // ── STREAK CALCULATION ────────────────────────────────────────────────────
+  // Extract the calendar date (UTC) from each completion timestamp, deduplicate
+  // so that completing multiple challenges in one day counts as a single streak
+  // day, then sort newest-first.
+  //
+  // Dates are UTC throughout.  The user's local date may differ by up to ±12 h,
+  // but server-side rendering has no access to the browser's timezone.  UTC is
+  // the pragmatic choice for a first implementation.
+  const uniqueDates = [
+    ...new Set((progress ?? []).map(p => p.completed_at.slice(0, 10)))
+  ].sort((a, b) => b.localeCompare(a))
+
+  // A streak is only alive if the user practiced today or yesterday (UTC).
+  // If the most recent activity is older than yesterday the streak is 0 — broken.
+  const todayUTC     = new Date().toISOString().slice(0, 10)
+  const yesterdayUTC = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10)
+
+  let streak = 0
+  if (uniqueDates.length > 0 && (uniqueDates[0] === todayUTC || uniqueDates[0] === yesterdayUTC)) {
+    streak = 1
+    // Walk the sorted date list and count how many consecutive days follow.
+    for (let i = 1; i < uniqueDates.length; i++) {
+      const prev = new Date(uniqueDates[i - 1]).getTime()
+      const curr = new Date(uniqueDates[i]).getTime()
+      if (Math.round((prev - curr) / 86_400_000) === 1) {
+        streak++
+      } else {
+        break
+      }
+    }
+  }
+
+  // ── SERVER ACTION ──
 
   async function signOut() {
     'use server'
@@ -32,6 +86,8 @@ export default async function ProfilePage() {
     await supabase.auth.signOut()
     redirect('/')
   }
+
+  // ── RENDER ──
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-200">
@@ -57,31 +113,41 @@ export default async function ProfilePage() {
           </form>
         </div>
 
-        {/* Progress Card */}
-        <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-8">
-          <div className="flex items-end justify-between mb-4">
-            <div>
-              <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Overall Progress</p>
-              <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                {totalCompleted}
-                <span className="text-xl font-normal text-gray-400 dark:text-gray-500"> / {totalChallenges}</span>
-              </p>
+        {/* Stats Row — progress + streak side by side */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+
+          {/* Progress card */}
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Completed</p>
+            <p className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              {totalCompleted}
+              <span className="text-xl font-normal text-gray-400 dark:text-gray-500"> / {totalChallenges}</span>
+            </p>
+            <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
+              <div
+                className="bg-gray-900 dark:bg-white h-2 rounded-full transition-all duration-500"
+                style={{ width: `${percentage}%` }}
+              />
             </div>
-            <p className="text-2xl font-bold text-gray-400 dark:text-gray-500">{percentage}%</p>
+            <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">{percentage}% done</p>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2.5">
-            <div
-              className="bg-gray-900 dark:bg-white h-2.5 rounded-full transition-all duration-500"
-              style={{ width: `${percentage}%` }}
-            />
+
+          {/* Streak card */}
+          <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
+            <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Day Streak</p>
+            <p className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+              {streak}
+              <span className="text-xl font-normal text-gray-400 dark:text-gray-500"> day{streak !== 1 ? 's' : ''}</span>
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500">
+              {streak === 0
+                ? 'Complete a challenge to start your streak'
+                : streak === 1
+                ? 'Keep going — come back tomorrow'
+                : `${streak} days in a row`}
+            </p>
           </div>
-          <p className="mt-3 text-sm text-gray-500 dark:text-gray-400">
-            {totalCompleted === 0
-              ? 'Start a challenge to track your progress'
-              : totalCompleted === totalChallenges
-              ? 'All challenges completed. Well done!'
-              : `${totalChallenges - totalCompleted} challenges remaining`}
-          </p>
+
         </div>
 
         {/* Challenge List */}

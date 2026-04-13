@@ -1,3 +1,19 @@
+/**
+ * @file app/login/page.tsx
+ * @description Sign-in page — the entry point of the auth flow.
+ *
+ *              LoginForm is separated from LoginPage and wrapped in <Suspense> for a
+ *              specific Next.js reason: useSearchParams() suspends during SSR to prevent
+ *              search params from leaking into the statically cached shell.  Without the
+ *              Suspense boundary the entire route would be forced into dynamic rendering
+ *              on every request, losing static caching.  The boundary confines the
+ *              dynamic part to just the form.
+ *
+ *              returnUrl is the key UX contract with middleware: when proxy.ts redirects
+ *              an unauthenticated user from /profile to /login, it appends the original
+ *              path as returnUrl so the user lands back where they intended after signing in.
+ */
+
 'use client'
 
 import { useState, useRef, Suspense } from 'react'
@@ -22,6 +38,8 @@ function EyeIcon({ open }: { open: boolean }) {
   )
 }
 
+// ── LOGIN FORM ──
+
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -40,6 +58,9 @@ function LoginForm() {
     e.preventDefault()
     setError('')
 
+    // Client-side validation is a UX courtesy, not a security boundary.
+    // Supabase enforces the same rules server-side; this just avoids a round-trip
+    // for the most common mistakes.
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
       setError('Please enter a valid email address')
       return
@@ -148,6 +169,8 @@ function LoginForm() {
     </main>
   )
 }
+
+// ── PAGE SHELL ──
 
 export default function LoginPage() {
   return (

@@ -1,3 +1,20 @@
+/**
+ * @file data/learningPaths.ts
+ * @description Learning paths are a pure curation layer — they introduce no new data,
+ *              only impose curriculum structure over the existing challenge catalogue via
+ *              ordered ID references.
+ *
+ *              This design lets the same challenge appear in multiple paths (e.g. closures
+ *              in both "JS Basics" and "Advanced Patterns") and makes paths trivially cheap
+ *              to create without duplicating challenge content.
+ *
+ *              Note: the detail page (app/learning-paths/[id]/page.tsx) derives its list
+ *              by filtering the challenges array, so the displayed order follows challenges.ts
+ *              order, not challengeIds order.  If a path needs a specific sequence that
+ *              differs from the global array order, the filter approach needs to be changed
+ *              to a map-over-ids approach.
+ */
+
 import { LearningPath } from '@/types/challenge'
 
 export const learningPaths: LearningPath[] = [

@@ -1,3 +1,9 @@
+/**
+ * @file app/learning-paths/page.tsx
+ * @description Static grid of all learning paths — purely a navigation page.
+ *              No interactivity, no auth, fully CDN-cacheable.
+ */
+
 import Link from 'next/link'
 import { learningPaths } from '@/data/learningPaths'
 import Navbar from '@/components/ui/Navbar'

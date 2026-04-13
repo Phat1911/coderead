@@ -12,6 +12,8 @@
 | Syntax Highlighting | Shiki | Server-side code highlighting with dual theme |
 | Database | Supabase | User accounts, challenge progress storage |
 | Auth | @supabase/supabase-js + @supabase/ssr | Authentication, session management, SSR cookie handling |
+| Email | Resend | Transactional email for OTP verification codes during signup |
+| Analytics | PostHog | Page views, user behaviour tracking, funnels |
 | Hosting | Vercel | Deployment, CDN, auto-deploy on push |
 | Version Control | GitHub | Source of truth for all code |
 | Domain | codeoneread.tech | Custom domain via get.tech |
@@ -31,14 +33,23 @@
 | `app/learning-paths/page.tsx` | Server | Learning paths listing page. Shows all curated paths with difficulty, time, and challenge count |
 | `app/learning-paths/[id]/page.tsx` | Server | Individual learning path detail page. Lists challenges in the path with a "Start Path" button |
 | `app/login/page.tsx` | Client | Email/password login form. Uses useSearchParams (wrapped in Suspense). Calls Supabase signInWithPassword. Redirects to returnUrl after success |
-| `app/signup/page.tsx` | Client | Email/password signup form. Calls Supabase signUp with emailRedirectTo for confirmation. Shows success state with email confirmation message |
-| `app/profile/page.tsx` | Server | Protected by proxy.ts. Fetches user session and user_progress from Supabase. Shows overall progress bar (X of 20), percentage, and checklist of all 20 challenges with green checkmark for completed ones |
+| `app/signup/page.tsx` | Client | Two-step signup form. Step 1 collects credentials and calls /api/send-code to email an OTP. Step 2 takes the OTP, calls /api/verify-code, and only then calls supabase.auth.signUp() — no auth record is created until email ownership is proven |
+| `app/leaderboard/page.tsx` | Server | Public ranking of top 20 users by completed challenges. Fetches from the `leaderboard` Postgres view. Highlights the current user's row if logged in. Shows a sign-up CTA for anonymous visitors |
+| `app/profile/page.tsx` | Server | Protected by proxy.ts. Fetches user session, profiles, and user_progress from Supabase in parallel. Shows completed/total progress card, current day streak card, and checklist of all 20 challenges with green checkmark for completed ones |
 
 ### App - Auth
 
 | File | Type | Purpose |
 |------|------|---------|
 | `app/auth/callback/route.ts` | Route Handler | Exchanges OAuth code for session after email confirmation. Redirects to / on success or /login?error=auth_failed on failure |
+
+### App - API
+
+| File | Type | Purpose |
+|------|------|---------|
+| `app/api/verify-email/route.ts` | Route Handler | Checks whether an email domain can receive mail by resolving its MX records via Node.js `dns`. Called from the signup form before `supabase.auth.signUp()` to reject fake or mistyped domains early and prevent wasted auth records |
+| `app/api/send-code/route.ts` | Route Handler | Generates a cryptographically random 6-digit OTP, stores it in `email_verifications` with a 2-minute expiry, and sends it via Resend. Runs an MX check first to avoid spending a send on an undeliverable domain. Any existing unused codes for the same email are deleted before inserting the new one |
+| `app/api/verify-code/route.ts` | Route Handler | Validates a submitted OTP against `email_verifications` — checks code match, `used = false`, and `expires_at > now()` in a single query. Marks the row `used = true` on success to prevent replay. The signup page calls `supabase.auth.signUp()` only after receiving `{ valid: true }` |
 
 ### App - Challenges
 
@@ -58,6 +69,7 @@
 
 | File | Type | Purpose |
 |------|------|---------|
+| `components/ui/PosthogProvider.tsx` | Client | Initialises PostHog on mount and wraps the tree with PHProvider. Contains PosthogPageview (a sub-component) that fires a $pageview event on every route change via usePathname + useSearchParams. The sub-component lives inside a Suspense boundary because useSearchParams() suspends on SSR |
 | `components/ui/ThemeProvider.tsx` | Client | Manages light/dark mode state. Reads OS preference and localStorage on mount. Exposes useTheme() hook. SSR-safe - all browser API access is inside useEffect |
 | `components/ui/ThemeToggle.tsx` | Client | Sun/moon icon button in the navbar. Calls toggle() from useTheme() to switch between light and dark |
 | `components/ui/NavbarAuth.tsx` | Client | Shows Sign in link when logged out, Profile link when logged in. Uses onAuthStateChange to react to login/logout in real time |
@@ -113,9 +125,18 @@ D:\coderead
 │   │   └── page.tsx                  # Email/password signup form (/signup)
 │   ├── profile/
 │   │   └── page.tsx                  # User progress dashboard (/profile)
+│   ├── leaderboard/
+│   │   └── page.tsx                  # Top 20 users ranked by completions (/leaderboard)
 │   ├── auth/
 │   │   └── callback/
 │   │       └── route.ts              # OAuth callback handler (/auth/callback)
+│   ├── api/
+│   │   ├── verify-email/
+│   │   │   └── route.ts              # MX record check — rejects fake domains before signUp
+│   │   ├── send-code/
+│   │   │   └── route.ts              # Generates OTP, stores in DB, sends via Resend
+│   │   └── verify-code/
+│   │       └── route.ts              # Validates OTP — marks used, gates supabase.auth.signUp()
 │   └── challenges/
 │       ├── page.tsx                  # Challenge list with filters (/challenges)
 │       └── [id]/
@@ -123,14 +144,16 @@ D:\coderead
 │
 ├── components/
 │   ├── ui/
+│   │   ├── PosthogProvider.tsx       # PostHog init + page view tracking
 │   │   ├── ThemeProvider.tsx         # Light/dark state management
 │   │   ├── ThemeToggle.tsx           # Sun/moon toggle button
 │   │   ├── NavbarAuth.tsx            # Auth-aware nav links (Sign in / Profile)
 │   │   ├── OwlMascot.tsx             # Animated SVG owl (idle/tracking/hiding/peeking)
 │   │   └── OwlController.tsx         # Owl state router, wraps OwlMascot
 │   └── challenge/
-│       ├── ChallengeView.tsx         # Interactive reveal UI, displays concept tags
-│       └── ChallengeFilters.tsx      # Difficulty, language, and tag filter bar
+│       ├── ChallengeView.tsx         # Interactive reveal UI, displays concept tags, hints, AI explanation, bookmark toggle
+│       ├── ChallengeFilters.tsx      # Difficulty, language, and tag filter bar + search input + bookmark buttons on cards
+│       └── BookmarkClient.tsx        # Client component for /bookmarks page, shows bookmarked challenges
 │
 ├── data/
 │   ├── challenges.ts                 # 20 hardcoded challenges with concept tags
@@ -142,7 +165,8 @@ D:\coderead
 ├── lib/
 │   ├── highlighter.ts                # Shiki singleton, highlight() function
 │   ├── hooks/
-│   │   └── useOwlTracking.ts         # Cursor-tracking hook for owl pupils
+│   │   ├── useOwlTracking.ts         # Cursor-tracking hook for owl pupils
+│   │   └── useBookmarks.ts           # localStorage-based bookmark management
 │   └── supabase/
 │       ├── client.ts                 # Browser-side Supabase client
 │       ├── server.ts                 # Server-side Supabase client
@@ -291,6 +315,9 @@ Total static pages: 26. /profile and /auth/callback require server runtime.
 # Active (Phase 3)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+RESEND_API_KEY=re_...                        # Server-only — sends OTP emails via codeoneread.tech domain
+NEXT_PUBLIC_POSTHOG_KEY=phc_...             # PostHog project API key
+NEXT_PUBLIC_POSTHOG_HOST=https://...        # PostHog ingest host (us.i.posthog.com or eu.i.posthog.com)
 ```
 
 ---

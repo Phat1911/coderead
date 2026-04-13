@@ -1,3 +1,19 @@
+/**
+ * @file components/ui/OwlController.tsx
+ * @description The translation layer between form state and animation state.
+ *
+ *              OwlMascot knows nothing about forms; login/signup pages know nothing about
+ *              SVG geometry.  OwlController sits between them and owns the mapping:
+ *              "email field active" → tracking mode using emailRef's cursor position,
+ *              "password field active + hidden" → hiding mode,
+ *              "password field active + visible" → peeking mode.
+ *
+ *              useOwlTracking runs for every trackable field simultaneously, but only the
+ *              active field's pupilX value is forwarded to OwlMascot.  This means tracking
+ *              state is always ready the moment a field becomes active — no initialization
+ *              delay as the user switches focus between fields.
+ */
+
 'use client'
 
 import OwlMascot from '@/components/ui/OwlMascot'

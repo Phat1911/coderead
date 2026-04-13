@@ -1,8 +1,25 @@
+/**
+ * @file app/page.tsx
+ * @description Landing page with live social proof stats.
+ *
+ *              Static content (hero, challenges preview, paths) is derived from
+ *              local data arrays. Dynamic stats (learner count, total completions,
+ *              top 3 leaderboard) come from Supabase and are revalidated hourly
+ *              via ISR — the page stays CDN-fast while reflecting real growth.
+ *
+ *              If the DB returns no data (empty DB, network error), the stats
+ *              gracefully fall back to 0 and the leaderboard teaser is hidden.
+ */
+
 import Link from 'next/link'
 import { challenges } from '@/data/challenges'
 import { learningPaths } from '@/data/learningPaths'
 import { Difficulty } from '@/types/challenge'
 import Navbar from '@/components/ui/Navbar'
+import { getClient } from '@/lib/supabase/server'
+
+// Regenerate the page (and re-fetch DB stats) at most once per hour.
+export const revalidate = 3600
 
 const difficultyColor: Record<Difficulty, string> = {
   beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -10,17 +27,44 @@ const difficultyColor: Record<Difficulty, string> = {
   advanced: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 }
 
-export default function Home() {
+// Rank badge colours for positions 1–3.
+const rankStyle = [
+  'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
+  'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
+  'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400',
+]
+
+const TOTAL = challenges.length
+const LANGUAGES = [...new Set(challenges.map(c => c.language))].length
+
+export default async function Home() {
+  const supabase = await getClient()
+
+  // Fetch all three stats in a single round-trip to Supabase.
+  const [
+    { count: learnerCount },
+    { count: completionCount },
+    { data: topRows },
+  ] = await Promise.all([
+    supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase.from('user_progress').select('*', { count: 'exact', head: true }),
+    supabase.rpc('get_leaderboard', { row_limit: 3 }),
+  ])
+
+  const learners    = learnerCount   ?? 0
+  const completions = completionCount ?? 0
+  const leaders     = topRows         ?? []
+
   return (
     <main className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-200">
 
       <Navbar />
 
-      {/* Hero */}
+      {/* ── HERO ── */}
       <section className="max-w-4xl mx-auto px-6 pt-24 pb-20 text-center">
         <div className="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-medium px-3 py-1.5 rounded-full mb-8">
           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-          {challenges.length} challenges available
+          {TOTAL} challenges available
         </div>
         <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-gray-900 dark:text-white mb-6 leading-tight">
           Learn to{' '}
@@ -46,7 +90,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Hero Video */}
+      {/* ── HERO VIDEO ── */}
       <section className="max-w-4xl mx-auto px-6 pb-16">
         <div className="relative rounded-2xl overflow-hidden border border-gray-200 dark:border-gray-800 shadow-2xl shadow-gray-200/50 dark:shadow-black/50">
           <video
@@ -60,13 +104,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats bar */}
+      {/* ── STATS BAR ──
+           First two stats are static (content meta).
+           Last two are live community numbers from the DB. */}
       <section className="border-y border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 py-6">
-        <div className="max-w-4xl mx-auto px-6 grid grid-cols-3 gap-4 text-center">
+        <div className="max-w-4xl mx-auto px-6 grid grid-cols-4 gap-4 text-center">
           {[
-            { label: 'Challenges', value: `${challenges.length}` },
-            { label: 'Difficulty levels', value: '3' },
-            { label: 'Languages', value: '2' },
+            { label: 'Challenges',   value: `${TOTAL}` },
+            { label: 'Languages',    value: `${LANGUAGES}` },
+            { label: 'Learners',     value: `${learners.toLocaleString()}` },
+            { label: 'Completions',  value: `${completions.toLocaleString()}` },
           ].map((stat) => (
             <div key={stat.label}>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">{stat.value}</p>
@@ -76,8 +123,65 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Learning Paths */}
-      <section className="max-w-4xl mx-auto py-16 px-6">
+      {/* ── TOP LEARNERS TEASER ──
+           Only rendered when the DB has at least one entry (hides cleanly on
+           an empty DB before seed data or real users exist). */}
+      {leaders.length > 0 && (
+        <section className="max-w-4xl mx-auto py-16 px-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Top Learners</h2>
+            <Link
+              href="/leaderboard"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              Full leaderboard
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {leaders.map((entry, i) => {
+              const pct = Math.round((entry.completed_count / TOTAL) * 100)
+              return (
+                <div
+                  key={entry.username}
+                  className="flex items-center gap-4 px-5 py-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+                >
+                  <span className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${rankStyle[i]}`}>
+                    {i + 1}
+                  </span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-white flex-1 truncate">
+                    {entry.username}
+                  </span>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className="w-24 h-1.5 rounded-full bg-gray-100 dark:bg-gray-800 hidden sm:block">
+                      <div
+                        className="h-1.5 rounded-full bg-gray-900 dark:bg-white transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 w-14 text-right">
+                      {entry.completed_count} / {TOTAL}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <div className="mt-6 text-center">
+            <Link
+              href="/leaderboard"
+              className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
+            >
+              See all rankings
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </Link>
+          </div>
+        </section>
+      )}
+
+      {/* ── LEARNING PATHS PREVIEW ── */}
+      <section className="max-w-4xl mx-auto py-16 px-6 border-t border-gray-100 dark:border-gray-800">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
             Learning Paths
@@ -124,7 +228,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Featured Challenges */}
+      {/* ── FEATURED CHALLENGES ── */}
       <section className="max-w-4xl mx-auto py-16 px-6 border-t border-gray-100 dark:border-gray-800">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -166,7 +270,7 @@ export default function Home() {
             href="/challenges"
             className="inline-flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
           >
-            View all {challenges.length} challenges
+            View all {TOTAL} challenges
             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
             </svg>
@@ -177,6 +281,7 @@ export default function Home() {
       <footer className="border-t border-gray-100 dark:border-gray-800 text-center py-8 text-xs text-gray-400 dark:text-gray-600">
         Built by <a href="https://www.facebook.com/profile.php?id=100090521350628" className="underline hover:text-gray-600 dark:hover:text-gray-400 transition-colors">Nicolas Tran</a>
       </footer>
+
     </main>
   )
 }

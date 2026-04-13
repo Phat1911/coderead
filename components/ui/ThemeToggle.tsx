@@ -1,3 +1,10 @@
+/**
+ * @file components/ui/ThemeToggle.tsx
+ * @description Thin consumer of ThemeProvider — renders the opposite-state icon
+ *              (moon when light, sun when dark) to signal what clicking will switch to,
+ *              not what the current state is.
+ */
+
 'use client'
 
 import { useTheme } from './ThemeProvider'

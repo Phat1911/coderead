@@ -1,3 +1,10 @@
+/**
+ * @file app/not-found.tsx
+ * @description Custom 404 — shown when notFound() is called (e.g. unknown challenge ID)
+ *              or when no route matches.  Keeps the user inside the app with direct
+ *              links rather than a dead end.
+ */
+
 import Link from 'next/link'
 import Navbar from '@/components/ui/Navbar'
 
@@ -36,7 +43,7 @@ export default function NotFound() {
       </div>
 
       <footer className="border-t border-gray-100 dark:border-gray-800 text-center py-8 text-xs text-gray-400 dark:text-gray-600">
-        Built with <a href="https://meetorion.app" className="underline hover:text-gray-600 dark:hover:text-gray-400 transition-colors">Orion</a>
+        Built with <a href="https://www.facebook.com/profile.php?id=100090521350628" className="underline hover:text-gray-600 dark:hover:text-gray-400 transition-colors">Nicolas Tran</a>
       </footer>
     </main>
   )

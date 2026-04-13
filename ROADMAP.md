@@ -43,28 +43,30 @@
 
 ## Phase 3 - User Accounts
 **Goal:** Track progress, increase retention.
-**Status: Next**
+**Status: Complete**
 
-- [ ] Integrate Supabase Auth (email + Google login)
-- [ ] User profile page
-- [ ] Mark challenges as completed
-- [ ] Progress bar showing X of Y challenges done
-- [ ] Streak tracking (days practiced in a row)
-- [ ] Migrate challenges from hardcoded to Supabase database
-- [ ] Admin panel for adding/editing challenges
+- [x] Integrate Supabase Auth (email — Google login deferred to Phase 5)
+- [x] Email OTP verification before account creation (prevents wasted auth records)
+- [x] User profile page
+- [x] Mark challenges as completed
+- [x] Progress bar showing X of Y challenges done
+- [x] Streak tracking (days practiced in a row)
+- [ ] Migrate challenges from hardcoded to Supabase database (deferred — no value until user submissions or admin panel is needed)
+- [ ] Admin panel for adding/editing challenges (deferred — depends on Supabase migration)
 
 ---
 
 ## Phase 4 - Learning Experience
 **Goal:** Make the learning deeper and more structured.
+**Status: Complete**
 
-- [ ] Concept tags per challenge (e.g. "async/await", "useEffect")
-- [ ] Filter challenges by concept tag
-- [ ] Learning paths (curated sequences of challenges by topic)
-- [ ] "Explain this to me" button - AI explains the code in plain language
-- [ ] Hint system - progressive hints before revealing full explanation
-- [ ] Bookmarks - save challenges to revisit
-- [ ] Search challenges by keyword
+- [x] Concept tags per challenge (e.g. "async/await", "useEffect")
+- [x] Filter challenges by concept tag
+- [x] Learning paths (curated sequences of challenges by topic)
+- [x] "Explain this to me" button - AI explains the code in plain language
+- [x] Hint system - progressive hints before revealing full explanation
+- [x] Bookmarks - save challenges to revisit
+- [x] Search challenges by keyword
 
 ---
 
@@ -72,12 +74,12 @@
 **Goal:** Bring in users and build the community.
 
 - [ ] Public challenge submission by users
-- [ ] Leaderboard (most challenges completed)
+- [x] Leaderboard (most challenges completed)
 - [ ] Share challenge as image (for social media)
 - [ ] Weekly email digest with a new challenge
 - [ ] Referral system
-- [ ] Analytics (Posthog or Plausible)
-- [ ] Landing page redesign with social proof
+- [x] Analytics (PostHog — page views + behaviour tracking)
+- [x] Landing page redesign with social proof
 
 ---
 
@@ -90,16 +92,3 @@
 - [ ] Environment variable management (Vercel env drift prevention)
 
 ---
-
-## Current Sprint (Phase 3 Start)
-
-| Task | Owner | Status |
-|------|-------|--------|
-| Set up Supabase project | Phat + Orion | Pending |
-| Integrate Supabase Auth | Claude Code | Pending |
-| User profile page | Claude Code | Pending |
-| Mark challenges as completed | Claude Code | Pending |
-
----
-
-*Built with [Orion](https://meetorion.app)*

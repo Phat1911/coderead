@@ -1,8 +1,24 @@
+/**
+ * @file app/learning-paths/[id]/page.tsx
+ * @description Dynamic learning path detail page — runs per-request so server-side
+ *              auth is available, same pattern as the profile page.
+ *
+ *              Watch out: pathChallenges is built with challenges.filter(), which
+ *              iterates the global challenges array in its own order.  The displayed
+ *              sequence follows challenges.ts order, not the order of path.challengeIds.
+ *              If a path ever needs to show challenges in a sequence that differs from
+ *              the global array, this must be changed to path.challengeIds.map(id =>
+ *              challenges.find(c => c.id === id)) to preserve the curated order.
+ */
+
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { learningPaths } from '@/data/learningPaths'
 import { challenges } from '@/data/challenges'
 import Navbar from '@/components/ui/Navbar'
+import { getClient } from '@/lib/supabase/server'
+
+export const dynamic = 'force-dynamic'
 
 const difficultyColor: Record<string, string> = {
   beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
@@ -10,17 +26,15 @@ const difficultyColor: Record<string, string> = {
   advanced: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 }
 
-export function generateStaticParams() {
-  return learningPaths.map((path) => ({
-    id: path.id,
-  }))
-}
-
-export default function LearningPathPage({ params }: { params: { id: string } }) {
-  const path = learningPaths.find((p) => p.id === params.id)
+export default async function LearningPathPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const path = learningPaths.find((p) => p.id === id)
   if (!path) notFound()
 
-  const pathChallenges = challenges.filter((c) => path.challengeIds.includes(c.id))
+  const supabase = await getClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const pathChallenges = challenges.filter((c) => path!.challengeIds.includes(c.id))
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
@@ -38,20 +52,20 @@ export default function LearningPathPage({ params }: { params: { id: string } })
 
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <span className="text-5xl">{path.icon}</span>
+            <span className="text-5xl">{path!.icon}</span>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{path.title}</h1>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{path!.title}</h1>
               <div className="flex items-center gap-3 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                <span className={`px-2.5 py-1 rounded-full ${difficultyColor[path.difficulty]}`}>
-                  {path.difficulty}
+                <span className={`px-2.5 py-1 rounded-full ${difficultyColor[path!.difficulty]}`}>
+                  {path!.difficulty}
                 </span>
-                <span>{path.estimatedTime}</span>
+                <span>{path!.estimatedTime}</span>
                 <span>•</span>
                 <span>{pathChallenges.length} challenges</span>
               </div>
             </div>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 text-lg">{path.description}</p>
+          <p className="text-gray-600 dark:text-gray-400 text-lg">{path!.description}</p>
         </div>
 
         <div className="space-y-4">
@@ -78,7 +92,7 @@ export default function LearningPathPage({ params }: { params: { id: string } })
 
         <div className="mt-8">
           <Link
-            href={`/challenges/${pathChallenges[0]?.id}`}
+            href={user ? `/challenges/${pathChallenges[0]?.id}` : '/login'}
             className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
           >
             Start Path

@@ -1,3 +1,20 @@
+/**
+ * @file components/ui/OwlMascot.tsx
+ * @description Pure SVG presentation layer — a function of props, no internal state.
+ *
+ *              The SVG draw order is architecturally significant:
+ *              body → glasses (under wings) → wings → eyes + beak (on top).
+ *              Wings must be painted after glasses but before eyes so that in "hiding"
+ *              mode the wings visually cover both.  Reversing the order would make the
+ *              animation look broken (glasses or eyes visible through closed wings).
+ *
+ *              All coordinates are proportional to `size` so the owl can be embedded
+ *              at any scale without distortion or magic numbers.  Inline styles carry
+ *              the transition/transform values rather than Tailwind because each
+ *              element has a different easing curve per mode, and encoding 12+ distinct
+ *              cubic-bezier transitions as class strings would be unreadable.
+ */
+
 'use client'
 
 interface OwlMascotProps {
@@ -7,6 +24,10 @@ interface OwlMascotProps {
   size?: number
 }
 
+/**
+ * Pure SVG owl with CSS-transition animations driven by `mode` and pupil offsets.
+ * All numeric geometry is proportional to `size` — change one value to rescale everything.
+ */
 export default function OwlMascot({ mode, pupilX = 0, pupilY = 0, size = 140 }: OwlMascotProps) {
   const cx = size / 2
   const cy = size / 2
@@ -19,7 +40,10 @@ export default function OwlMascot({ mode, pupilX = 0, pupilY = 0, size = 140 }: 
   const pupilR      = size * 0.052
   const pupilMax    = eyeR - pupilR - size * 0.006
 
-  // Pupils
+  // ── PUPIL POSITIONS ──
+  // Peeking overrides the tracked cursor position: the owl is physically looking
+  // around its wing from one side, so the pupils are fixed at a specific angle
+  // rather than following the user's cursor.
   const ePX = mode === 'peeking' ? -0.4 : pupilX
   const ePY = mode === 'peeking' ? -0.8 : pupilY
   const lPX = cx - eyeOffsetX + ePX * pupilMax
@@ -96,7 +120,10 @@ export default function OwlMascot({ mode, pupilX = 0, pupilY = 0, size = 140 }: 
     transform: `rotate(${rWingRot}deg)`,
   }
 
-  // Glasses frame helper - rendered per-eye so each can animate independently
+  // ── STYLE OBJECTS ──
+  // Per-element style objects let React diff only the changed transform.
+  // Left and right glasses are separate style objects so peeking mode can
+  // hide only the right lens while leaving the left one fully visible.
   const glassStyle = (scale: number): React.CSSProperties => ({
     transformOrigin: `${cx}px ${cy + eyeOffsetY}px`,
     transition: glassTrans,

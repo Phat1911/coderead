@@ -1,3 +1,16 @@
+/**
+ * @file app/challenges/page.tsx
+ * @description Static shell + interactive island pattern.
+ *
+ *              This page loads instantly from static HTML (no server computation).
+ *              The outer layout — page title, breadcrumb, footer — is Server Component.
+ *              The entire interactive part (search, filters, challenge list) is delegated
+ *              to ChallengeFilters as a single Client Component island that receives the
+ *              full challenge data as a prop at build time.  This means no client-side
+ *              fetch, no loading spinner, and the full catalogue is available for BM25
+ *              indexing the moment the component mounts.
+ */
+
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { challenges } from '@/data/challenges'
@@ -39,7 +52,7 @@ export default function ChallengesPage() {
       </div>
 
       <footer className="border-t border-gray-100 dark:border-gray-800 text-center py-8 text-xs text-gray-400 dark:text-gray-600 mt-8">
-        Built with <a href="https://meetorion.app" className="underline hover:text-gray-600 dark:hover:text-gray-400 transition-colors">Orion</a>
+        Built with <a href="https://www.facebook.com/profile.php?id=100090521350628" className="underline hover:text-gray-600 dark:hover:text-gray-400 transition-colors">Nicolas Tran</a>
       </footer>
     </main>
   )

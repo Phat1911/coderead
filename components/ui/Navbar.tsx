@@ -1,10 +1,22 @@
+/**
+ * @file components/ui/Navbar.tsx
+ * @description The navbar is a Server Component with a single Client island (NavbarAuth).
+ *
+ *              Making the whole navbar a Client Component just to show a login/profile
+ *              link would force every page using it to ship unnecessary JavaScript.
+ *              Instead, the static structure (links, logo, theme toggle) is server-rendered
+ *              with zero client JS, and only the one dynamic piece — "is the user logged
+ *              in?" — is isolated in NavbarAuth.  This pattern keeps the JS bundle lean
+ *              while still supporting real-time auth state updates.
+ */
+
 import Link from 'next/link'
 import Image from 'next/image'
 import ThemeToggle from '@/components/ui/ThemeToggle'
 import NavbarAuth from '@/components/ui/NavbarAuth'
 
 interface NavbarProps {
-  activeLink?: 'challenges' | 'profile' | 'learning-paths'
+  activeLink?: 'challenges' | 'profile' | 'learning-paths' | 'bookmarks' | 'leaderboard'
 }
 
 export default function Navbar({ activeLink }: NavbarProps) {
@@ -34,6 +46,26 @@ export default function Navbar({ activeLink }: NavbarProps) {
           }`}
         >
           Learning Paths
+        </Link>
+        <Link
+          href="/bookmarks"
+          className={`text-sm transition-colors ${
+            activeLink === 'bookmarks'
+              ? 'font-medium text-gray-900 dark:text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          Bookmarks
+        </Link>
+        <Link
+          href="/leaderboard"
+          className={`text-sm transition-colors ${
+            activeLink === 'leaderboard'
+              ? 'font-medium text-gray-900 dark:text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          Leaderboard
         </Link>
         <NavbarAuth />
         <ThemeToggle />

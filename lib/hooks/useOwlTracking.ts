@@ -1,5 +1,28 @@
+/**
+ * @file lib/hooks/useOwlTracking.ts
+ * @description Powers the "owl reads the form" effect on login/signup pages.
+ *
+ *              The UX intent: form-filling is anxiety-inducing (especially passwords).
+ *              Making the owl's eyes track your cursor as you type your email/username
+ *              turns a routine form into a playful, character-driven moment.  When you
+ *              focus the password field, the owl covers its eyes — a privacy gesture that
+ *              is both charming and communicates "your password is hidden."
+ *
+ *              The technical challenge: browsers expose no API for the pixel X position
+ *              of a text cursor inside an <input>.  The getBoundingClientRect() approach
+ *              that works for contentEditable does not work for input elements.  Instead
+ *              we replicate the browser's text layout by measuring text width on an
+ *              off-screen canvas with the same computed font, then dividing by field width
+ *              to get a 0–1 cursor fraction.
+ */
+
 import { useState, useEffect, useRef } from 'react'
 
+/**
+ * Estimates cursor position as a 0–1 fraction of the input's visible width.
+ * Clamps to 1 so text that has scrolled out of view (wider than the field)
+ * doesn't produce a fraction greater than 1 and send pupils off-screen.
+ */
 function getCursorFraction(el: HTMLInputElement): number {
   const textBeforeCursor = el.value.slice(0, el.selectionStart ?? 0)
 
@@ -15,6 +38,11 @@ function getCursorFraction(el: HTMLInputElement): number {
   return Math.min(textWidth / fieldWidth, 1)
 }
 
+/**
+ * Returns live pupil offsets (range -1..1) driven by cursor movement in `inputRef`.
+ * `pupilY` is always 0 here — vertical offset (looking downward at the field) is
+ * applied by OwlController so this hook stays reusable without those assumptions.
+ */
 export default function useOwlTracking(inputRef: React.RefObject<HTMLInputElement | null>): {
   pupilX: number
   pupilY: number
