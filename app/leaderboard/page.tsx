@@ -29,6 +29,8 @@ export const metadata: Metadata = {
 
 const TOTAL = challenges.length
 
+type LeaderboardEntry = { id: string; username: string; completed_count: number }
+
 // ── RANK BADGE ───────────────────────────────────────────────────────────────
 // Returns the visual badge for a given rank position.
 // Top 3 get distinct colours; everyone else gets a plain number.
@@ -67,7 +69,7 @@ export default async function LeaderboardPage() {
     supabase.auth.getUser(),
   ])
 
-  const entries = rows ?? []
+  const entries: LeaderboardEntry[] = (rows ?? []) as LeaderboardEntry[]
 
   // Find the current user's rank to show a personalised callout if they
   // are outside the top 20 (i.e. not already visible in the list).

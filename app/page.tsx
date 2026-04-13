@@ -18,7 +18,9 @@ import { Difficulty } from '@/types/challenge'
 import Navbar from '@/components/ui/Navbar'
 import { getClient } from '@/lib/supabase/server'
 
-// Regenerate the page (and re-fetch DB stats) at most once per hour.
+// Force static prerender so cookies() is skipped (returns empty values) and ISR
+// can regenerate the page without a live request context.
+export const dynamic = 'force-static'
 export const revalidate = 3600
 
 const difficultyColor: Record<Difficulty, string> = {
@@ -51,9 +53,10 @@ export default async function Home() {
     supabase.rpc('get_leaderboard', { row_limit: 3 }),
   ])
 
+  type Leader = { username: string; completed_count: number }
   const learners    = learnerCount   ?? 0
   const completions = completionCount ?? 0
-  const leaders     = topRows         ?? []
+  const leaders     = (topRows ?? []) as Leader[]
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-200">
