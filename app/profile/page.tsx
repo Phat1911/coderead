@@ -22,6 +22,7 @@ import { challenges } from '@/data/challenges'
 import Navbar from '@/components/ui/Navbar'
 import type { Metadata } from 'next'
 
+/** Page-level SEO metadata. Title and description for the protected profile route. */
 export const metadata: Metadata = {
   title: 'My Profile',
   description: 'Track your CodeRead challenge progress.',
@@ -35,14 +36,20 @@ export default async function ProfilePage() {
 
   const [{ data: profile }, { data: progress }] = await Promise.all([
     supabase.from('profiles').select('username').eq('id', user.id).single(),
-    supabase.from('user_progress').select('challenge_id, completed_at').eq('user_id', user.id).order('completed_at', { ascending: false }),
+    supabase.from('user_progress').select('challenge_id, completed_at, is_correct').eq('user_id', user.id).order('completed_at', { ascending: false }),
   ])
 
   // ── PROGRESS CALCULATION ──
-  // Set gives O(1) lookup per challenge row — vs O(n) for array.includes() across
-  // potentially hundreds of completed challenges for each of 20+ rendered rows.
-  const completedIds = new Set((progress ?? []).map(p => p.challenge_id))
-  const totalCompleted = completedIds.size
+  // Map<challenge_id, is_correct> gives O(1) lookup per rendered row.
+  // is_correct = true  → quiz answered correctly or non-quiz revealed (treated as done)
+  // is_correct = false → quiz answered wrong (shows ✗ until they get it right)
+  const progressMap = new Map((progress ?? []).map(p => [p.challenge_id, p.is_correct]))
+  // "Completed" = quiz challenges answered correctly + non-quiz challenges revealed
+  const totalCompleted = (progress ?? []).filter(p => {
+    const ch = challenges.find(c => c.id === p.challenge_id)
+    const isQuiz = !!(ch?.options && ch.options.length > 0)
+    return isQuiz ? p.is_correct : true
+  }).length
   const totalChallenges = challenges.length
   const percentage = Math.round((totalCompleted / totalChallenges) * 100)
 
@@ -78,8 +85,7 @@ export default async function ProfilePage() {
     }
   }
 
-  // ── SERVER ACTION ──
-
+  /** Server Action: signs the user out via Supabase, then redirects to the landing page. */
   async function signOut() {
     'use server'
     const supabase = await getClient()
@@ -154,7 +160,18 @@ export default async function ProfilePage() {
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">All Challenges</h2>
         <div className="grid gap-2">
           {challenges.map((challenge) => {
-            const done = completedIds.has(challenge.id)
+            const isQuiz = !!(challenge.options && challenge.options.length > 0)
+            const isCorrect = progressMap.get(challenge.id)   // undefined | false | true
+            const attempted = isCorrect !== undefined
+
+            // ── 3 display states ──────────────────────────────────────────────
+            // • not attempted            → empty gray ring
+            // • quiz + wrong (false)     → red ✗ ring, normal title
+            // • quiz + correct (true)    → green ✓ ring, dimmed title
+            // • non-quiz + viewed        → green ✓ ring, dimmed title
+            const showWrong  = attempted && isQuiz && !isCorrect
+            const showDone   = attempted && (isCorrect || !isQuiz)
+
             return (
               <Link
                 key={challenge.id}
@@ -162,19 +179,25 @@ export default async function ProfilePage() {
                 className="group flex items-center justify-between bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-5 py-4 hover:border-gray-400 dark:hover:border-gray-600 transition-all"
               >
                 <div className="flex items-center gap-3 min-w-0">
+                  {/* Status indicator */}
                   <div className={`w-5 h-5 rounded-full border-2 shrink-0 flex items-center justify-center transition-colors ${
-                    done
-                      ? 'bg-green-500 border-green-500'
-                      : 'border-gray-300 dark:border-gray-600'
+                    showDone  ? 'bg-green-500 border-green-500' :
+                    showWrong ? 'bg-red-500 border-red-500' :
+                                'border-gray-300 dark:border-gray-600'
                   }`}>
-                    {done && (
+                    {showDone && (
                       <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
                     )}
+                    {showWrong && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
                   </div>
                   <span className={`text-sm font-medium truncate ${
-                    done ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-white'
+                    showDone ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-white'
                   }`}>
                     {challenge.title}
                   </span>
@@ -195,7 +218,7 @@ export default async function ProfilePage() {
       </div>
 
       <footer className="border-t border-gray-100 dark:border-gray-800 text-center py-8 text-xs text-gray-400 dark:text-gray-600 mt-8">
-        Built with <a href="https://meetorion.app" className="underline hover:text-gray-600 dark:hover:text-gray-400 transition-colors">Orion</a>
+        Built by <a href="https://www.facebook.com/profile.php?id=100090521350628" className="underline hover:text-gray-600 dark:hover:text-gray-400 transition-colors">Nicolas Tran</a>
       </footer>
     </main>
   )

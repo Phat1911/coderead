@@ -15,8 +15,9 @@ import Image from 'next/image'
 import ThemeToggle from '@/components/ui/ThemeToggle'
 import NavbarAuth from '@/components/ui/NavbarAuth'
 
+/** Identifies the currently active top-level route so the matching nav link gets the bold/white style. */
 interface NavbarProps {
-  activeLink?: 'challenges' | 'profile' | 'learning-paths' | 'bookmarks' | 'leaderboard'
+  activeLink?: 'challenges' | 'profile' | 'learning-paths' | 'bookmarks' | 'leaderboard' | 'debug'
 }
 
 export default function Navbar({ activeLink }: NavbarProps) {
@@ -46,6 +47,16 @@ export default function Navbar({ activeLink }: NavbarProps) {
           }`}
         >
           Learning Paths
+        </Link>
+        <Link
+          href="/debug"
+          className={`text-sm transition-colors ${
+            activeLink === 'debug'
+              ? 'font-medium text-gray-900 dark:text-white'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          Debug
         </Link>
         <Link
           href="/bookmarks"

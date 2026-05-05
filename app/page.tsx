@@ -23,20 +23,23 @@ import { getClient } from '@/lib/supabase/server'
 export const dynamic = 'force-static'
 export const revalidate = 3600
 
+/** Tailwind badge classes keyed by difficulty. Shared with challenge list and detail pages for visual consistency. */
 const difficultyColor: Record<Difficulty, string> = {
   beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   intermediate: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
   advanced: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 }
 
-// Rank badge colours for positions 1–3.
+/** Tailwind badge classes for leaderboard positions 1–3 (gold, silver, bronze). */
 const rankStyle = [
   'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400',
   'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-300',
   'bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400',
 ]
 
+/** Total challenge count — derived at build time and displayed in the hero stats bar. */
 const TOTAL = challenges.length
+/** Number of distinct programming languages across all challenges. */
 const LANGUAGES = [...new Set(challenges.map(c => c.language))].length
 
 export default async function Home() {

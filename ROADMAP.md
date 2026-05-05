@@ -73,13 +73,14 @@
 ## Phase 5 - Growth
 **Goal:** Bring in users and build the community.
 
+- [x] Leaderboard
+- [x] Analytics (PostHog)
+- [x] Landing page redesign with social proof
+- [x] Debug challenges (Find the Bug)
 - [ ] Public challenge submission by users
-- [x] Leaderboard (most challenges completed)
 - [ ] Share challenge as image (for social media)
 - [ ] Weekly email digest with a new challenge
 - [ ] Referral system
-- [x] Analytics (PostHog — page views + behaviour tracking)
-- [x] Landing page redesign with social proof
 
 ---
 

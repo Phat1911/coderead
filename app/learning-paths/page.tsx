@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { learningPaths } from '@/data/learningPaths'
 import Navbar from '@/components/ui/Navbar'
 
+/** Tailwind badge classes keyed by difficulty for path cards on the listing page. */
 const difficultyColor: Record<string, string> = {
   beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   intermediate: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',

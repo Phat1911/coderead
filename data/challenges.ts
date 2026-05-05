@@ -38,7 +38,14 @@ Key insight: && means BOTH conditions must be true. If only one is empty, it fal
     keyConceptsToSpot: ['&& vs || logic', 'template literals', '.trim()', 'truthy/falsy values'],
     tags: ['conditionals', 'strings', 'basics'],
     aiExplanation: 'Think of this like a name badge maker at a conference. If someone shows up with no first name AND no last name, the machine prints "Anonymous" as a default badge. But if even ONE name is provided, it tries to print both names together. The .trim() at the end is like wiping off any extra space before handing it over. So when you pass "" and "Tran", the first check fails (because Tran exists), and it prints " Tran" then trims it to just "Tran".',
-    hints: ['Think about what happens when you pass an empty string to a boolean check.', 'The && operator requires BOTH conditions to be true. What is !"" and what is !"Tran"?', 'The template literal creates " Tran" (with a leading space). What does .trim() do?']
+    hints: ['Think about what happens when you pass an empty string to a boolean check.', 'The && operator requires BOTH conditions to be true. What is !"" and what is !"Tran"?', 'The template literal creates " Tran" (with a leading space). What does .trim() do?'],
+    options: [
+      { label: 'A', text: '"Anonymous"' },
+      { label: 'B', text: '"Tran"' },
+      { label: 'C', text: '" Tran" (with a leading space)' },
+      { label: 'D', text: 'undefined' },
+    ],
+    correctOptionIndex: 1,
   },
   {
     id: '2',
@@ -63,7 +70,14 @@ Key insight: async/await functions always need try/catch. Without it, errors wou
     keyConceptsToSpot: ['async/await', 'try/catch error handling', 'fetch API', 'return null as fallback'],
     tags: ['async/await', 'error handling', 'fetch', 'api'],
     aiExplanation: 'This is the classic "try and fail gracefully" pattern. Imagine ordering food from a restaurant app: you place the order (fetch), wait for it (await), and if the kitchen is closed (error), instead of crashing, the app politely says "sorry, we\'ll try later" (return null). The try/catch is your safety net - without it, one bad API call would freeze your entire app. Always use try/catch with async/await.',
-    hints: ['Look for a block that catches errors.', 'When fetch fails, an error is thrown. Where does the code handle that?', 'The catch block has a return statement. What does it return?']
+    hints: ['Look for a block that catches errors.', 'When fetch fails, an error is thrown. Where does the code handle that?', 'The catch block has a return statement. What does it return?'],
+    options: [
+      { label: 'A', text: 'undefined' },
+      { label: 'B', text: 'An empty object {}' },
+      { label: 'C', text: 'null' },
+      { label: 'D', text: 'It throws an error' },
+    ],
+    correctOptionIndex: 2,
   },
   {
     id: '3',
@@ -94,7 +108,14 @@ Key insight: The [] at the end of useEffect means "run this once when the compon
     keyConceptsToSpot: ['useState', 'useEffect cleanup', 'event listeners', 'memory leaks', 'empty dependency array'],
     tags: ['react', 'useEffect', 'hooks', 'cleanup'],
     aiExplanation: 'This React hook is like a window sensor. When your component mounts (opens the window), it starts measuring the window width. Every time the browser resizes, it updates the measurement. But here\'s the key: when the component unmounts (closes the window), the cleanup function removes the event listener. Without cleanup, your app would keep measuring forever, causing memory leaks - like leaving 100 sensors running in an empty room.',
-    hints: ['Think about what happens when the browser window resizes.', 'There\'s a function that runs when the component unmounts. What does it do?', 'The cleanup function removes the event listener. Without it, listeners pile up.']
+    hints: ['Think about what happens when the browser window resizes.', 'There\'s a function that runs when the component unmounts. What does it do?', 'The cleanup function removes the event listener. Without it, listeners pile up.'],
+    options: [
+      { label: 'A', text: 'Returns the current window width' },
+      { label: 'B', text: 'Prevents React from re-rendering the component' },
+      { label: 'C', text: 'Adds a second resize event listener' },
+      { label: 'D', text: 'Removes the resize event listener when the component unmounts' },
+    ],
+    correctOptionIndex: 3,
   },
   {
     id: '4',
@@ -120,7 +141,14 @@ Key insight: filter reduces the array (removes items), map transforms it (change
     keyConceptsToSpot: ['.filter()', '.map()', 'method chaining', 'arrow functions', '.toUpperCase()'],
     tags: ['arrays', 'filter', 'map', 'transformations'],
     aiExplanation: 'This is a data transformation pipeline - like an assembly line. First, .filter() removes inactive users (quality control). Then .map() takes each remaining user and transforms their data into a cleaner format (packaging). The result is a new array with only the data you need, neatly formatted. Method chaining lets you write this in one smooth flow instead of creating temporary variables at each step.',
-    hints: ['Look for a block that catches errors.', 'When fetch fails, an error is thrown. Where does the code handle that?', 'The catch block has a return statement. What does it return?']
+    hints: ['Look for a block that catches errors.', 'When fetch fails, an error is thrown. Where does the code handle that?', 'The catch block has a return statement. What does it return?'],
+    options: [
+      { label: 'A', text: '["Phat", "Linh"]' },
+      { label: 'B', text: '["PHAT", "NAM", "LINH"]' },
+      { label: 'C', text: '["PHAT", "LINH"]' },
+      { label: 'D', text: '["phat", "linh"]' },
+    ],
+    correctOptionIndex: 2,
   },
   {
     id: '5',
@@ -158,7 +186,14 @@ Key insight: Good AI-generated functions validate input BEFORE calling the API. 
     keyConceptsToSpot: ['input validation', 'throw new Error', 'response.ok', 'JSON.stringify', 'multiple error paths'],
     tags: ['validation', 'error handling', 'api', 'fetch'],
     aiExplanation: 'This is a defensive programming pattern. Before creating anything, it validates every piece of data: title can\'t be empty, content can\'t be too short, and the API call must succeed. If ANY check fails, it throws a specific error explaining exactly what went wrong. This is better than silent failures because it tells you immediately what\'s wrong, like a spell-checker that highlights each error with a specific reason.',
-    hints: ['Look at the conditions before the fetch call.', 'There are checks for empty title and short content. What happens if they fail?', 'The function throws specific Error messages for each validation failure.']
+    hints: ['Look at the conditions before the fetch call.', 'There are checks for empty title and short content. What happens if they fail?', 'The function throws specific Error messages for each validation failure.'],
+    options: [
+      { label: 'A', text: '1 way' },
+      { label: 'B', text: '2 ways' },
+      { label: 'C', text: '4 ways' },
+      { label: 'D', text: '3 ways' },
+    ],
+    correctOptionIndex: 3,
   },
   {
     id: '6',
@@ -180,7 +215,14 @@ Key insight: These four steps form a common chain pattern in AI-generated code. 
     keyConceptsToSpot: ['string split', 'array map', 'array join', 'method chaining', 'toUpperCase'],
     tags: ['strings', 'split', 'map', 'join'],
     aiExplanation: 'This function is like cutting up a full name into initials. First, .split(\' \') chops the name into words at each space. Then .map() takes the first letter of each word and capitalizes it. Finally, .join(\'\') glues them all back together without spaces. So "John Fitzgerald Kennedy" becomes ["John", "Fitzgerald", "Kennedy"] -> ["J", "F", "K"] -> "JFK".',
-    hints: ['Think about what .split(\' \') does to a string.', 'Each word is mapped to its first character, uppercased.', 'The final .join(\'\') combines all the letters without spaces.']
+    hints: ['Think about what .split(\' \') does to a string.', 'Each word is mapped to its first character, uppercased.', 'The final .join(\'\') combines all the letters without spaces.'],
+    options: [
+      { label: 'A', text: '"jds"' },
+      { label: 'B', text: '"JDS"' },
+      { label: 'C', text: '"J.D.S"' },
+      { label: 'D', text: '"John Doe Smith"' },
+    ],
+    correctOptionIndex: 1,
   },
   {
     id: '7',
@@ -203,7 +245,14 @@ Key insight: If you use find and try to call .length or .map on the result, you 
     keyConceptsToSpot: ['Array.find', 'Array.filter', 'single vs array return', 'short-circuit evaluation', 'truthy object properties'],
     tags: ['arrays', 'find', 'filter', 'basics'],
     aiExplanation: 'Think of .find() as looking for one specific person in a crowd - it stops the moment it finds the first match. Think of .filter() as asking everyone with a red shirt to step forward - it collects ALL matches. Both scan the array, but .find() returns one item (or undefined), while .filter() returns an array (possibly empty). Use .find() when you need ONE thing, .filter() when you need EVERYTHING that matches.',
-    hints: ['Look at the conditions before the fetch call.', 'There are checks for empty title and short content. What happens if they fail?', 'The function throws specific Error messages for each validation failure.']
+    hints: ['Look at the conditions before the fetch call.', 'There are checks for empty title and short content. What happens if they fail?', 'The function throws specific Error messages for each validation failure.'],
+    options: [
+      { label: 'A', text: 'result1 is an array of all active users; result2 is the first active user object' },
+      { label: 'B', text: 'result1 is the first active user object; result2 is an array of all active user objects' },
+      { label: 'C', text: 'Both result1 and result2 return arrays of matching objects' },
+      { label: 'D', text: 'Both result1 and result2 return the first matching object' },
+    ],
+    correctOptionIndex: 1,
   },
   {
     id: '8',
@@ -229,7 +278,14 @@ Key insight: The = {} after the destructuring pattern is a safety net. Without i
     keyConceptsToSpot: ['destructuring defaults', 'default parameter value', 'shorthand object creation', 'undefined safety', 'function parameters'],
     tags: ['destructuring', 'defaults', 'objects', 'basics'],
     aiExplanation: 'Object destructuring is like unpacking a box with backup items. The function expects an object with label, color, and disabled properties. But the = \'Click me\', = \'blue\', = false parts are defaults - if you don\'t provide a value, the function uses the backup. So createButton({}) returns a blue "Click me" button, while createButton({ label: \'Submit\', color: \'red\' }) uses your values and defaults disabled to false.',
-    hints: ['Look at the parameter list - each property has a default value.', 'If you pass an empty object {}, what values are used?', 'The defaults are: label=\'Click me\', color=\'blue\', disabled=false.']
+    hints: ['Look at the parameter list - each property has a default value.', 'If you pass an empty object {}, what values are used?', 'The defaults are: label=\'Click me\', color=\'blue\', disabled=false.'],
+    options: [
+      { label: 'A', text: 'a: {label:"Submit",color:"green",disabled:false}  b: {label:"Click me",color:"blue",disabled:false}  c: {label:"Click me",color:"blue",disabled:true}' },
+      { label: 'B', text: 'a: {label:"Submit",color:"green",disabled:false}  b: undefined  c: {disabled:true}' },
+      { label: 'C', text: 'a: {label:"Submit",color:"green"}  b: {label:"Click me",color:"blue",disabled:false}  c: {disabled:true}' },
+      { label: 'D', text: 'All three throw a TypeError because = {} is required but missing' },
+    ],
+    correctOptionIndex: 0,
   },
   {
     id: '9',
@@ -264,7 +320,14 @@ Key insight: In Promise chains, whatever you return from one .then becomes the a
     keyConceptsToSpot: ['Promise chaining', '.then return values', 'instanceof check', '.catch error handling', 'conditional branching in promises'],
     tags: ['promises', 'chaining', 'async', 'error handling'],
     aiExplanation: 'This is a promise chain - each .then() waits for the previous step to finish before starting. It\'s like a relay race: fetchOrder passes the baton to validateOrder, which passes it to processPayment, then to sendConfirmation. If ANY runner drops the baton (throws an error), the .catch() at the end picks it up. The finally block runs no matter what - like cleaning up the track after the race, win or lose.',
-    hints: ['Read the chain from top to bottom. Each .then() receives the previous return.', 'The fetch returns a Response object. The next .then() calls .json() on it.', 'The order is: fetch -> json -> processOrder -> sendConfirmation. Finally runs regardless.']
+    hints: ['Read the chain from top to bottom. Each .then() receives the previous return.', 'The fetch returns a Response object. The next .then() calls .json() on it.', 'The order is: fetch -> json -> processOrder -> sendConfirmation. Finally runs regardless.'],
+    options: [
+      { label: 'A', text: 'A Response object from the second fetch call' },
+      { label: 'B', text: 'null, because "shipped" is not handled by the if condition' },
+      { label: 'C', text: 'undefined, because no return statement executes for "shipped"' },
+      { label: 'D', text: 'The order object directly (not wrapped in a Response)' },
+    ],
+    correctOptionIndex: 3,
   },
   {
     id: '10',
@@ -299,7 +362,14 @@ Key insight: React does not merge object state automatically like class componen
     keyConceptsToSpot: ['useState object state', 'spread operator', 'computed property names', 'state replacement vs merge', 'React hooks'],
     tags: ['react', 'useState', 'objects', 'spread operator'],
     aiExplanation: 'useState with objects is tricky. When you do setForm({ name: \'New Name\' }), React REPLACES the entire form object - it doesn\'t merge. So the email and age fields disappear. To keep existing fields, you need the spread operator: setForm({ ...form, name: \'New Name\' }). This is like copying all the furniture from your old house before replacing one piece. Without spread, you lose everything else.',
-    hints: ['Look at how setForm is called. Does it merge or replace?', 'React state for objects doesn\'t auto-merge like class components.', 'You need the spread operator: setForm({ ...form, name: value }).']
+    hints: ['Look at how setForm is called. Does it merge or replace?', 'React state for objects doesn\'t auto-merge like class components.', 'You need the spread operator: setForm({ ...form, name: value }).'],
+    options: [
+      { label: 'A', text: 'No bug — React automatically merges object state like class components did' },
+      { label: 'B', text: 'setForm({ [field]: value }) replaces the entire state object, wiping all other fields' },
+      { label: 'C', text: 'The computed property [field] syntax is invalid in React state updaters' },
+      { label: 'D', text: 'The function updates correctly but only for the last field typed' },
+    ],
+    correctOptionIndex: 1,
   },
   {
     id: '11',
@@ -320,7 +390,14 @@ Key insight: List comprehensions are more concise than for loops for building li
     keyConceptsToSpot: ['list comprehension', 'modulo operator', 'exponentiation', 'filter condition', 'string methods in comprehension'],
     tags: ['python', 'list comprehension', 'arrays', 'filtering'],
     aiExplanation: 'List comprehension is Python\'s elegant way to filter and transform in one line. Instead of writing a for loop, creating an empty list, and appending items, you write it like a sentence: "give me n for each n in numbers IF n is even." It\'s faster, cleaner, and more Pythonic. Think of it as a factory that only produces items meeting your criteria, all in a single expression.',
-    hints: ['Read it like English: \"n for each n in numbers if n is even.\"', 'The % operator gives the remainder. Even numbers have remainder 0.', 'This creates [2, 4, 6, 8, 10] - all even numbers from the original list.']
+    hints: ['Read it like English: \"n for each n in numbers if n is even.\"', 'The % operator gives the remainder. Even numbers have remainder 0.', 'This creates [2, 4, 6, 8, 10] - all even numbers from the original list.'],
+    options: [
+      { label: 'A', text: 'evens: [1,3,5,7,9]  squares_of_evens: [1,9,25,49,81]  upper: ["hello","world","python"]' },
+      { label: 'B', text: 'evens: [2,4,6,8,10]  squares_of_evens: [4,8,12,16,20]  upper: ["HELLO","WORLD","PYTHON"]' },
+      { label: 'C', text: 'evens: [2,4,6,8,10]  squares_of_evens: [4,16,36,64,100]  upper: ["HELLO","WORLD","PYTHON"]' },
+      { label: 'D', text: 'evens: [2,4,6,8,10]  squares_of_evens: [2,4,6,8,10]  upper: ["HELLO","WORLD","PYTHON"]' },
+    ],
+    correctOptionIndex: 2,
   },
   {
     id: '12',
@@ -346,7 +423,14 @@ Key insight: Generics let one function work with many types while keeping full t
     keyConceptsToSpot: ['generic type parameter', 'type inference', 'union type with undefined', 'reusable typed functions', 'array type syntax'],
     tags: ['typescript', 'generics', 'type inference', 'reusability'],
     aiExplanation: 'Generics are like a function template. <T> is a placeholder that says "I\'ll figure out the type when you call me." getFirst<number>([1,2,3]) replaces T with number. getFirst<string>([\'a\',\'b\']) replaces T with string. wrapInObject(\'hello\') automatically infers T as string. This makes one function work with ANY type while keeping full type safety - no any, no type assertions needed.',
-    hints: ['<T> is a type placeholder. It gets replaced when you call the function.', 'getFirst([1,2,3]) infers T as number. getFirst([\'a\',\'b\']) infers T as string.', 'Generics let one function work with any type while keeping full type safety.']
+    hints: ['<T> is a type placeholder. It gets replaced when you call the function.', 'getFirst([1,2,3]) infers T as number. getFirst([\'a\',\'b\']) infers T as string.', 'Generics let one function work with any type while keeping full type safety.'],
+    options: [
+      { label: 'A', text: 'num: number  str: string  empty: null' },
+      { label: 'B', text: 'num: any  str: any  empty: any — TypeScript cannot infer generic types' },
+      { label: 'C', text: 'num: number | undefined  str: string | undefined  empty: undefined' },
+      { label: 'D', text: 'num: number | undefined  str: string | undefined  empty: number | string | undefined' },
+    ],
+    correctOptionIndex: 2,
   },
   {
     id: '13',
@@ -375,7 +459,14 @@ Key insight: reduce is like a snowball rolling downhill - it accumulates a resul
     keyConceptsToSpot: ['Array.reduce', 'accumulator pattern', 'initial value', 'building objects with reduce', 'multiplication in iteration'],
     tags: ['arrays', 'reduce', 'aggregation', 'accumulation'],
     aiExplanation: 'Array.reduce() is the Swiss Army knife of array methods. It takes an accumulator (running total) and each item, then combines them. Here, it starts at 0 and adds each order\'s price * quantity. Think of it like a cash register: you start empty, scan each item (multiply price by quantity), and keep a running total. The final result is one value summarizing the entire array.',
-    hints: ['The first argument to reduce is the accumulator (running total).', 'Each iteration adds price * quantity to the accumulator.', 'Starting from 0: 0 + (12*2) + (3*5) + (8*1) = 24 + 15 + 8 = 47.']
+    hints: ['The first argument to reduce is the accumulator (running total).', 'Each iteration adds price * quantity to the accumulator.', 'Starting from 0: 0 + (12*2) + (3*5) + (8*1) = 24 + 15 + 8 = 47.'],
+    options: [
+      { label: 'A', text: 'total: 39  byProduct: {Book:12, Pen:3, Notebook:8}' },
+      { label: 'B', text: 'total: 47  byProduct: {Book:12, Pen:3, Notebook:8}' },
+      { label: 'C', text: 'total: 47  byProduct: {Book:24, Pen:15, Notebook:8}' },
+      { label: 'D', text: 'total: 23  byProduct: {Book:24, Pen:15, Notebook:8}' },
+    ],
+    correctOptionIndex: 2,
   },
   {
     id: '14',
@@ -409,7 +500,14 @@ Key insight: This is a closure. The inner functions (increment, decrement, reset
     keyConceptsToSpot: ['closure', 'lexical scope', 'factory function', 'encapsulated state', 'default parameters'],
     tags: ['closures', 'scope', 'factory function', 'encapsulation'],
     aiExplanation: 'A closure is a function that remembers its birthplace. makeCounter creates a private count variable and returns an object with methods. Even after makeCounter finishes running, those methods still have access to count. It\'s like a safe deposit box - only the returned methods can open it. Nobody outside can directly access or modify count, making this pattern perfect for encapsulation.',
-    hints: ['The inner functions can still access \'count\' even after makeCounter returns.', 'This is called a closure - functions remember their lexical scope.', 'Only the returned object can modify count. External code cannot access it directly.']
+    hints: ['The inner functions can still access \'count\' even after makeCounter returns.', 'This is called a closure - functions remember their lexical scope.', 'Only the returned object can modify count. External code cannot access it directly.'],
+    options: [
+      { label: 'A', text: 'result: 13  afterReset: 0' },
+      { label: 'B', text: 'result: 12  afterReset: 0' },
+      { label: 'C', text: 'result: 13  afterReset: 10' },
+      { label: 'D', text: 'result: 12  afterReset: 10' },
+    ],
+    correctOptionIndex: 3,
   },
   {
     id: '15',
@@ -441,7 +539,14 @@ Key insight: Decorators are wrappers. They add behavior (timing, logging, auth c
     keyConceptsToSpot: ['decorator syntax', 'higher-order function', '*args **kwargs', 'time.time()', 'function wrapping pattern'],
     tags: ['python', 'decorators', 'higher-order functions', 'wrapping'],
     aiExplanation: 'A decorator is a function wrapper that adds behavior without changing the original code. @timer wraps slow_function so every time you call it, the decorator measures execution time, runs the function, then prints how long it took. It\'s like putting a security camera on a door - the door works the same, but now you get extra information. The wrapper preserves the original function\'s behavior while adding new functionality.',
-    hints: ['The decorator wraps the original function with timing logic.', 'Before calling slow_function, it records the start time.', 'After slow_function finishes, it calculates elapsed time and prints it.']
+    hints: ['The decorator wraps the original function with timing logic.', 'Before calling slow_function, it records the start time.', 'After slow_function finishes, it calculates elapsed time and prints it.'],
+    options: [
+      { label: 'A', text: '@timer makes slow_sum run twice so it can compare timings; output is 30' },
+      { label: 'B', text: '@timer replaces slow_sum with a wrapper that times the call; output is 15' },
+      { label: 'C', text: '@timer logs slow_sum\'s arguments before calling it; output is [1,2,3,4,5]' },
+      { label: 'D', text: '@timer throws a TypeError because slow_sum is not async' },
+    ],
+    correctOptionIndex: 1,
   },
   {
     id: '16',
@@ -472,7 +577,14 @@ Key insight: The status field is the discriminant - it is the shared key that ha
     keyConceptsToSpot: ['discriminated union', 'type narrowing', 'literal types', 'switch exhaustiveness', 'union type'],
     tags: ['typescript', 'discriminated unions', 'type narrowing', 'switch'],
     aiExplanation: 'Discriminated unions use a common property (status) to distinguish between different types. TypeScript can narrow the type based on that property in a switch statement. When status === \'loading\', TS knows data and error don\'t exist. When status === \'success\', TS knows data exists and error doesn\'t. This prevents runtime errors - you can\'t accidentally access data when it doesn\'t exist. It\'s a type-safe state machine.',
-    hints: ['The \'status\' field determines which type is active.', 'In the \'success\' case, TypeScript knows data exists but error doesn\'t.', 'This prevents runtime errors - you can\'t accidentally access .error when status is \'success\'.']
+    hints: ['The \'status\' field determines which type is active.', 'In the \'success\' case, TypeScript knows data exists but error doesn\'t.', 'This prevents runtime errors - you can\'t accidentally access .error when status is \'success\'.'],
+    options: [
+      { label: 'A', text: 'TypeScript allows any property access inside switch cases because the type is already determined' },
+      { label: 'B', text: '\'status\' is the discriminant — TypeScript narrows State to SuccessState inside the "success" case, so data is accessible there but not outside' },
+      { label: 'C', text: 'You must cast with (state as SuccessState).data — TypeScript never narrows union types automatically' },
+      { label: 'D', text: 'TypeScript doesn\'t narrow types inside switch — you need an if/else chain for narrowing to work' },
+    ],
+    correctOptionIndex: 1,
   },
   {
     id: '17',
@@ -508,7 +620,14 @@ Key insight: The as const at the end tells TypeScript the returned array has a f
     keyConceptsToSpot: ['custom hook', 'lazy useState initializer', 'localStorage serialization', 'generic type parameter', 'as const tuple'],
     tags: ['react', 'custom hooks', 'localStorage', 'generics'],
     aiExplanation: 'This custom hook wraps localStorage in a React-friendly way. It reads the stored value on mount, and whenever you call setValue, it updates both React state AND localStorage. The generic <T> means it works with strings, numbers, objects - any JSON-serializable type. It\'s like having a React state that automatically persists across page refreshes. The JSON.parse/stringify handles the conversion between JavaScript objects and stored text.',
-    hints: ['The hook reads from localStorage on mount and returns the stored value.', 'When setValue is called, it updates both React state AND localStorage.', 'JSON.parse/stringify handles converting between objects and stored text.']
+    hints: ['The hook reads from localStorage on mount and returns the stored value.', 'When setValue is called, it updates both React state AND localStorage.', 'JSON.parse/stringify handles converting between objects and stored text.'],
+    options: [
+      { label: 'A', text: 'It reads localStorage on every render to always return the freshest stored value' },
+      { label: 'B', text: 'It is required syntax — useState always needs a function argument' },
+      { label: 'C', text: 'It is a lazy initializer that reads localStorage once on mount, avoiding a repeated read on every render' },
+      { label: 'D', text: 'It prevents React from re-rendering when localStorage changes externally' },
+    ],
+    correctOptionIndex: 2,
   },
   {
     id: '18',
@@ -541,7 +660,14 @@ Key insight: useEffect cleanup is the key mechanism for cancelling stale async o
     keyConceptsToSpot: ['race condition', 'useEffect cleanup', 'stale closure', 'async in useEffect', 'cancellation pattern'],
     tags: ['react', 'useEffect', 'race condition', 'async'],
     aiExplanation: 'Race conditions happen when async operations complete out of order. User types \'a\', then \'ab\'. The \'ab\' request might finish BEFORE \'a\', showing wrong results. The cleanup function in useEffect tracks this with cancelled flag. If the query changes before the fetch completes, the old request\'s results are ignored. Without this check, you might show stale data from a previous search. It\'s like canceling an old pizza order when you\'ve already placed a new one.',
-    hints: ['Multiple fetch calls can return out of order. A slower earlier call might overwrite newer results.', 'The \'cancelled\' variable tracks whether the current query has changed.', 'If cancelled is true, the old response is discarded and not used to update results.']
+    hints: ['Multiple fetch calls can return out of order. A slower earlier call might overwrite newer results.', 'The \'cancelled\' variable tracks whether the current query has changed.', 'If cancelled is true, the old response is discarded and not used to update results.'],
+    options: [
+      { label: 'A', text: 'No bug — useEffect with [query] dependency automatically cancels the previous fetch' },
+      { label: 'B', text: 'A slow response from an earlier query can overwrite a faster response from a later query, showing stale results' },
+      { label: 'C', text: 'fetchResults is called without await so the results are always undefined' },
+      { label: 'D', text: 'React batches state updates, so setResults is only called once even if multiple fetches complete' },
+    ],
+    correctOptionIndex: 1,
   },
   {
     id: '19',
@@ -577,7 +703,14 @@ Key insight: Returning True from __exit__ swallows the exception (useful for ret
     keyConceptsToSpot: ['context manager protocol', '__enter__ and __exit__', 'exception propagation', 'guaranteed cleanup', 'with statement'],
     tags: ['python', 'context manager', 'with statement', 'cleanup'],
     aiExplanation: 'Context managers (with statement) ensure resources are properly cleaned up. The __enter__ method opens the connection, and __exit__ always closes it - even if an error occurs. Without \'with\', you\'d need try/finally to guarantee cleanup. The with statement is like a hotel stay: check-in (__enter__), do your business (use the connection), check-out (__exit__). Even if something goes wrong during your stay, the hotel guarantees you\'ll check out properly.',
-    hints: ['The \'with\' statement calls __enter__ before the block and __exit__ after.', '__exit__ runs even if an error occurs inside the block.', 'This guarantees the database connection is always closed, preventing leaks.']
+    hints: ['The \'with\' statement calls __enter__ before the block and __exit__ after.', '__exit__ runs even if an error occurs inside the block.', 'This guarantees the database connection is always closed, preventing leaks.'],
+    options: [
+      { label: 'A', text: '"Connecting to localhost", "True" — then the ValueError crashes before __exit__ runs' },
+      { label: 'B', text: '"Connecting to localhost", "True", "Closing connection", "Error occurred: Something went wrong" — then ValueError propagates' },
+      { label: 'C', text: '"Connecting to localhost", "True", "Closing connection" — the ValueError is suppressed because __exit__ returned False' },
+      { label: 'D', text: '"Connecting to localhost", "True", "Closing connection", "Error occurred: Something went wrong" — then ValueError is silently swallowed' },
+    ],
+    correctOptionIndex: 1,
   },
   {
     id: '20',
@@ -610,6 +743,13 @@ Key insight: TypeScript utility types are composable - you can nest them. Partia
     keyConceptsToSpot: ['Omit utility type', 'Pick utility type', 'Partial utility type', 'composing utility types', 'type safety for mutations'],
     tags: ['typescript', 'utility types', 'Omit', 'Pick', 'Partial'],
     aiExplanation: 'TypeScript utility types let you build new types from existing ones. PublicUser removes sensitive fields (password) using Omit. UserPreview keeps only essential fields using Pick. UpdateUser makes all remaining fields optional using Partial. By composing these, you create precise types for different scenarios without duplicating code. It\'s like having one master blueprint and creating specialized versions for different purposes.',
-    hints: ['Omit removes specified fields. Pick keeps only specified fields.', 'Partial makes all fields optional - you can provide any combination.', 'By composing Omit + Partial, you prevent accidentally changing id or createdAt.']
+    hints: ['Omit removes specified fields. Pick keeps only specified fields.', 'Partial makes all fields optional - you can provide any combination.', 'By composing Omit + Partial, you prevent accidentally changing id or createdAt.'],
+    options: [
+      { label: 'A', text: 'PublicUser: all User fields  UserPreview: id, name, email  UpdateUser: all User fields as optional' },
+      { label: 'B', text: 'PublicUser: id, name, email, createdAt  UserPreview: id, name  UpdateUser: name, email, password (all optional)' },
+      { label: 'C', text: 'PublicUser: id, name only  UserPreview: id, name, email  UpdateUser: identical to Partial<User>' },
+      { label: 'D', text: 'All three include every User field — utility types only affect whether fields are required' },
+    ],
+    correctOptionIndex: 1,
   }
 ]

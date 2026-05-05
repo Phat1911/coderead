@@ -20,6 +20,7 @@ import { notFound } from 'next/navigation'
 import ChallengeView from '@/components/challenge/ChallengeView'
 import { highlight } from '@/lib/highlighter'
 
+/** Next.js dynamic route props — params is a Promise in Next.js 16 and must be awaited. */
 interface PageProps {
   params: Promise<{ id: string }>
 }

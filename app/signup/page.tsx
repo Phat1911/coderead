@@ -35,6 +35,7 @@ import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/ui/Navbar'
 import OwlController from '@/components/ui/OwlController'
 
+/** Toggles between the open-eye and strikethrough-eye SVG icon based on `open`. Used in password fields. */
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -72,7 +73,8 @@ export default function SignupPage() {
   // generates a 6-digit OTP, and emails it.  signUp() is NOT called here —
   // the account is only created after the code is confirmed in handleVerify.
 
-  async function handleSubmit(e: React.FormEvent) {
+  /** Step 1: validates the form, calls /api/send-code to email an OTP, then advances to the verify step. */
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
 
@@ -116,7 +118,8 @@ export default function SignupPage() {
   // Submits the OTP to /api/verify-code.  Only on success does it call
   // supabase.auth.signUp(), guaranteeing every auth record has a confirmed inbox.
 
-  async function handleVerify(e: React.FormEvent) {
+  /** Step 2: submits the OTP to /api/verify-code; on success calls supabase.auth.signUp() and redirects to /profile. */
+  async function handleVerify(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
     setLoading(true)
@@ -171,8 +174,7 @@ export default function SignupPage() {
   }
 
   // ── RESEND CODE ───────────────────────────────────────────────────────────
-  // Re-calls /api/send-code which deletes the old code and issues a fresh one.
-
+  /** Re-calls /api/send-code to delete the old OTP and issue a fresh one, then resets the error state. */
   async function handleResend() {
     setError('')
     setLoading(true)
@@ -194,6 +196,7 @@ export default function SignupPage() {
 
   // ── RENDER ──
 
+  /** Shared Tailwind class string for all text inputs in the signup form. Extracted to avoid repetition. */
   const inputClass = 'w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-colors'
 
   return (

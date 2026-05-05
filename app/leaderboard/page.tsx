@@ -1,11 +1,12 @@
-/**
+﻿/**
  * @file app/leaderboard/page.tsx
- * @description Public ranking of users by number of completed challenges.
+ * @description Public ranking of users by total points earned.
  *
- *              Data comes from the `leaderboard` Postgres view, which aggregates
- *              user_progress rows per user and joins with profiles for usernames.
- *              The view handles the GROUP BY and ORDER BY so the query here stays
- *              trivial — just a limit.
+ *              Data comes from the `get_leaderboard` Postgres function, which sums
+ *              the `points` column from user_progress per user.
+ *              Points scale by difficulty and challenge type:
+ *              - Learn: beginner=1, intermediate=2, advanced=3
+ *              - Debug: beginner=5, intermediate=10, advanced=15
  *
  *              The current user's row is highlighted server-side: getClient() reads
  *              the session cookie and returns the authenticated user (or null) in
@@ -18,18 +19,25 @@
 
 import { getClient } from '@/lib/supabase/server'
 import { challenges } from '@/data/challenges'
+import { calculatePoints } from '@/lib/points'
 import Navbar from '@/components/ui/Navbar'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 
+// Maximum possible points from all existing learn challenges combined.
+// Used to render the progress bar as a fraction of total available points.
+const MAX_POINTS = challenges.reduce(
+  (sum, c) => sum + calculatePoints('learn', c.difficulty),
+  0
+)
+
 export const metadata: Metadata = {
   title: 'Leaderboard',
-  description: 'Top CodeRead users ranked by number of completed challenges.',
+  description: 'Top CodeRead users ranked by total points earned.',
 }
 
-const TOTAL = challenges.length
-
-type LeaderboardEntry = { id: string; username: string; completed_count: number }
+/** Matches the return type of the updated get_leaderboard RPC function. */
+type LeaderboardEntry = { user_id: string; username: string; total_points: number }
 
 // ── RANK BADGE ───────────────────────────────────────────────────────────────
 // Returns the visual badge for a given rank position.
@@ -73,7 +81,7 @@ export default async function LeaderboardPage() {
 
   // Find the current user's rank to show a personalised callout if they
   // are outside the top 20 (i.e. not already visible in the list).
-  const myIndex = user ? entries.findIndex(e => e.id === user.id) : -1
+  const myIndex = user ? entries.findIndex(e => e.user_id === user.id) : -1
 
   return (
     <main className="min-h-screen bg-white dark:bg-[#0a0a0a] transition-colors duration-200">
@@ -85,7 +93,7 @@ export default async function LeaderboardPage() {
         <div className="mb-10">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Leaderboard</h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Top {entries.length} users ranked by challenges completed.
+            Top {entries.length} users ranked by total points earned.
           </p>
         </div>
 
@@ -103,12 +111,12 @@ export default async function LeaderboardPage() {
           <div className="space-y-2">
             {entries.map((entry, i) => {
               const rank = i + 1
-              const pct = Math.round((entry.completed_count / TOTAL) * 100)
-              const isMe = user?.id === entry.id
+              const pct = MAX_POINTS > 0 ? Math.round((entry.total_points / MAX_POINTS) * 100) : 0
+              const isMe = user?.id === entry.user_id
 
               return (
                 <div
-                  key={entry.id}
+                  key={entry.user_id}
                   className={`flex items-center gap-4 px-5 py-4 rounded-xl border transition-colors ${
                     isMe
                       ? 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white'
@@ -127,7 +135,7 @@ export default async function LeaderboardPage() {
                     )}
                   </span>
 
-                  {/* Progress bar + count */}
+                  {/* Progress bar + points */}
                   <div className="flex items-center gap-3 shrink-0">
                     <div className={`w-24 h-1.5 rounded-full hidden sm:block ${
                       isMe ? 'bg-white/30 dark:bg-gray-900/30' : 'bg-gray-100 dark:bg-gray-800'
@@ -136,13 +144,13 @@ export default async function LeaderboardPage() {
                         className={`h-1.5 rounded-full transition-all ${
                           isMe ? 'bg-white dark:bg-gray-900' : 'bg-gray-900 dark:bg-white'
                         }`}
-                        style={{ width: `${pct}%` }}
+                        style={{ width: `${Math.min(pct, 100)}%` }}
                       />
                     </div>
                     <span className={`text-xs font-medium w-14 text-right ${
                       isMe ? 'text-white/80 dark:text-gray-900/80' : 'text-gray-400 dark:text-gray-500'
                     }`}>
-                      {entry.completed_count} / {TOTAL}
+                      {entry.total_points} pts
                     </span>
                   </div>
                 </div>

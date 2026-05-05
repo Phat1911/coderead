@@ -17,6 +17,7 @@ import { Difficulty } from '@/types/challenge'
 import Navbar from '@/components/ui/Navbar'
 import BookmarkClient from '@/components/challenge/BookmarkClient'
 
+/** Tailwind badge classes passed as a prop to BookmarkClient so styling is defined in one place. */
 const difficultyColor: Record<Difficulty, string> = {
   beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   intermediate: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',

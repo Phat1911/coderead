@@ -23,8 +23,10 @@ import { createClient } from '@/lib/supabase/client'
 import Navbar from '@/components/ui/Navbar'
 import OwlController from '@/components/ui/OwlController'
 
+/** Shared Tailwind class string for all text inputs in the login form. Extracted to avoid repetition. */
 const inputClass = 'w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-white focus:border-transparent transition-colors'
 
+/** Toggles between the open-eye and strikethrough-eye SVG icon based on `open`. Used in password fields. */
 function EyeIcon({ open }: { open: boolean }) {
   return open ? (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -40,6 +42,7 @@ function EyeIcon({ open }: { open: boolean }) {
 
 // ── LOGIN FORM ──
 
+/** Inner form that calls useSearchParams() — wrapped in Suspense by LoginPage to prevent SSR from going dynamic. */
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -54,7 +57,8 @@ function LoginForm() {
   const emailRef = useRef<HTMLInputElement>(null)
   const passwordRef = useRef<HTMLInputElement>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
+  /** Validates the form, calls Supabase signInWithPassword, then redirects to returnUrl on success. */
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError('')
 

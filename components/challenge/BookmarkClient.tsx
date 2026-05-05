@@ -22,6 +22,7 @@ import Link from 'next/link'
 import { Challenge, Difficulty } from '@/types/challenge'
 import { useBookmarks } from '@/lib/hooks/useBookmarks'
 
+/** Props from the server page: the full challenge catalogue and the shared difficulty colour map. */
 interface BookmarkClientProps {
   challenges: Challenge[]
   difficultyColor: Record<Difficulty, string>

@@ -58,12 +58,25 @@
 | `app/challenges/page.tsx` | Server | Challenge list page at /challenges. Imports all challenges and passes them to ChallengeFilters. Includes SEO metadata |
 | `app/challenges/[id]/page.tsx` | Server | Dynamic challenge page at /challenges/1 etc. Fetches challenge data, runs Shiki highlighting server-side, passes pre-rendered HTML to ChallengeView. Includes per-challenge SEO metadata via generateMetadata |
 
+### App - Debug (Find the Bug)
+
+| File | Type | Purpose |
+|------|------|---------|
+| `app/debug/page.tsx` | Server | Listing page at /debug. Grid of cards for every debug challenge, each linking to /debug/[id]. Static, imports debugChallenges directly |
+| `app/debug/[id]/page.tsx` | Server | Dynamic detail page at /debug/1 etc. Calls highlightLines() to pre-tokenise the snippet into per-line HTML so BugChallenge can make each line independently clickable. generateStaticParams pre-renders every debug challenge at build time |
+
 ### Components - Challenge
 
 | File | Type | Purpose |
 |------|------|---------|
 | `components/challenge/ChallengeView.tsx` | Client | Interactive challenge page UI. Handles the reveal/hide explanation interaction via useState. Receives pre-highlighted code HTML as a prop and renders it via dangerouslySetInnerHTML. Displays concept tags below the description |
 | `components/challenge/ChallengeFilters.tsx` | Client | Filter bar on /challenges. Lets users filter by difficulty, language, and concept tags. Filters work together with AND logic. Shows challenge count and progress indicator. Displays tags on each challenge card |
+
+### Components - Debug
+
+| File | Type | Purpose |
+|------|------|---------|
+| `components/debug/BugChallenge.tsx` | Client | Click-the-buggy-line challenge UI. Renders each source line as its own button with a line number; on click, compares the index to challenge.bugLineIndex, highlights green/red accordingly, and locks further attempts. On correct answer, upserts user_progress with points: 5; on wrong answer, records a zero-point attempt so the challenge can't be retried. Requires auth — redirects to /login?returnUrl=/debug/[id] for logged-out users |
 
 ### Components - UI
 
@@ -81,13 +94,14 @@
 | File | Purpose |
 |------|---------|
 | `data/challenges.ts` | All 20 hardcoded challenges. Each challenge has id, title, description, code, language, difficulty, question, explanation, keyConceptsToSpot, and tags. Languages: JavaScript, TypeScript, Python. Difficulties: Beginner, Intermediate, Advanced |
-| `types/challenge.ts` | TypeScript type definitions. Exports the Challenge interface (with optional tags) and Difficulty / Language union types |
+| `data/debugChallenges.ts` | Hardcoded "Find the Bug" challenges. Each entry has a code snippet with exactly one subtle bug, the 0-based bugLineIndex the user has to click, plus explanation and aiExplanation. Same code-over-DB rationale as data/challenges.ts — static pre-render, version control, PR review |
+| `types/challenge.ts` | TypeScript type definitions. Exports Challenge, LearningPath, and DebugChallenge interfaces and the Difficulty / Language union types |
 
 ### Lib (Utilities)
 
 | File | Purpose |
 |------|---------|
-| `lib/highlighter.ts` | Shiki syntax highlighting utility. Singleton pattern - creates the highlighter once and reuses it. Exports highlight(code, lang) async function that returns pre-rendered HTML with dual-theme CSS variables (--shiki-light and --shiki-dark) |
+| `lib/highlighter.ts` | Shiki syntax highlighting utility. Singleton pattern - creates the highlighter once and reuses it. Exports highlight(code, lang) for full-snippet HTML and highlightLines(code, lang) which returns one pre-highlighted HTML string per source line (used by BugChallenge to make each line a click target). Both emit dual-theme CSS variables. Supports javascript, typescript, and python |
 | `lib/supabase/client.ts` | Browser-side Supabase client using createBrowserClient from @supabase/ssr. Used in Client Components |
 | `lib/supabase/server.ts` | Server-side Supabase client using createServerClient. Reads/sets cookies via next/headers. Used in Server Components and Route Handlers |
 | `lib/supabase/middleware.ts` | Supabase session refresh utility for proxy.ts. Calls updateSession() which refreshes the auth token and returns { supabaseResponse, user } |
@@ -137,10 +151,14 @@ D:\coderead
 │   │   │   └── route.ts              # Generates OTP, stores in DB, sends via Resend
 │   │   └── verify-code/
 │   │       └── route.ts              # Validates OTP — marks used, gates supabase.auth.signUp()
-│   └── challenges/
-│       ├── page.tsx                  # Challenge list with filters (/challenges)
+│   ├── challenges/
+│   │   ├── page.tsx                  # Challenge list with filters (/challenges)
+│   │   └── [id]/
+│   │       └── page.tsx              # Individual challenge (/challenges/1-20)
+│   └── debug/
+│       ├── page.tsx                  # Find-the-Bug listing (/debug)
 │       └── [id]/
-│           └── page.tsx              # Individual challenge (/challenges/1-20)
+│           └── page.tsx              # Individual bug challenge (/debug/1-5)
 │
 ├── components/
 │   ├── ui/
@@ -150,13 +168,16 @@ D:\coderead
 │   │   ├── NavbarAuth.tsx            # Auth-aware nav links (Sign in / Profile)
 │   │   ├── OwlMascot.tsx             # Animated SVG owl (idle/tracking/hiding/peeking)
 │   │   └── OwlController.tsx         # Owl state router, wraps OwlMascot
-│   └── challenge/
-│       ├── ChallengeView.tsx         # Interactive reveal UI, displays concept tags, hints, AI explanation, bookmark toggle
-│       ├── ChallengeFilters.tsx      # Difficulty, language, and tag filter bar + search input + bookmark buttons on cards
-│       └── BookmarkClient.tsx        # Client component for /bookmarks page, shows bookmarked challenges
+│   ├── challenge/
+│   │   ├── ChallengeView.tsx         # Interactive reveal UI, displays concept tags, hints, AI explanation, bookmark toggle
+│   │   ├── ChallengeFilters.tsx      # Difficulty, language, and tag filter bar + search input + bookmark buttons on cards
+│   │   └── BookmarkClient.tsx        # Client component for /bookmarks page, shows bookmarked challenges
+│   └── debug/
+│       └── BugChallenge.tsx          # Click-the-buggy-line UI; awards 5 pts on correct answer, one attempt per user
 │
 ├── data/
 │   ├── challenges.ts                 # 20 hardcoded challenges with concept tags
+│   ├── debugChallenges.ts            # 5 "Find the Bug" challenges (AI-style subtle bugs)
 │   └── learningPaths.ts              # Curated learning paths with challenge sequences
 │
 ├── types/
@@ -275,6 +296,8 @@ interface Challenge {
 | `/` | Static (SSG) | 1 | Content never changes |
 | `/challenges` | Static (SSG) | 1 | Hardcoded data, filters run client-side |
 | `/challenges/[id]` | Static (SSG) | 20 | generateStaticParams pre-builds all 20 |
+| `/debug` | Static (SSG) | 1 | Hardcoded listing of debug challenges |
+| `/debug/[id]` | Static (SSG) | 5 | generateStaticParams pre-builds all 5 |
 | `/login` | Static (SSG) | 1 | Static form shell, dynamic via client JS |
 | `/signup` | Static (SSG) | 1 | Static form shell, dynamic via client JS |
 | `/profile` | Dynamic (f) | 1 | Protected route, fetches live user data |

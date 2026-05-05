@@ -17,6 +17,7 @@
 
 'use client'
 
+/** Props for the owl SVG. mode drives which animation plays; pupilX/Y shift the pupils (-1 to 1 normalised). */
 interface OwlMascotProps {
   mode: 'idle' | 'tracking' | 'hiding' | 'peeking'
   pupilX?: number

@@ -22,11 +22,13 @@ import "./globals.css";
 import ThemeProvider from "@/components/ui/ThemeProvider";
 import PosthogProvider from "@/components/ui/PosthogProvider";
 
+/** Variable-font CSS custom property for the proportional text face. Referenced in globals.css as --font-geist-sans. */
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
+/** Variable-font CSS custom property for the monospace face used in code blocks. */
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],

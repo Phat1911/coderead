@@ -25,13 +25,14 @@ import { Resend } from 'resend'
 import { getClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 /**
  * Validates the email domain via MX lookup, then generates, stores, and emails
  * a 6-digit verification code that expires in 2 minutes.
  */
 export async function POST(request: Request) {
+  // Instantiated inside the handler so the env var is only read at request time,
+  // not at build time (where it would be undefined and crash the build).
+  const resend = new Resend(process.env.RESEND_API_KEY)
   const { email }: { email: string } = await request.json()
 
   // ── 1. MX CHECK ──────────────────────────────────────────────────────────

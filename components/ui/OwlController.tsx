@@ -19,6 +19,7 @@
 import OwlMascot from '@/components/ui/OwlMascot'
 import useOwlTracking from '@/lib/hooks/useOwlTracking'
 
+/** Props the form page passes to OwlController. The controller maps these two signals into owl mode + pupil coords. */
 interface OwlControllerProps {
   activeField: 'none' | 'username' | 'email' | 'password'
   showPassword: boolean
@@ -35,9 +36,11 @@ export default function OwlController({
   const usernameTracking = useOwlTracking(usernameRef)
   const emailTracking = useOwlTracking(emailRef)
 
+  /** Current animation state forwarded to OwlMascot. Starts idle and is set by whichever branch fires below. */
   let mode: 'idle' | 'tracking' | 'hiding' | 'peeking' = 'idle'
+  /** Horizontal pupil offset forwarded to OwlMascot. Overwritten by the active field's tracking value. */
   let pupilX = 0
-  // When tracking, pupils glance down (0.55) to observe the text cursor
+  /** Pupils glance down when tracking so they appear to look at the text cursor rather than straight ahead. */
   const TRACKING_PUPIL_Y = 0.55
 
   if (activeField === 'username') {
@@ -50,6 +53,7 @@ export default function OwlController({
     mode = showPassword ? 'peeking' : 'hiding'
   }
 
+  /** Vertical offset: non-zero only in tracking mode; zero for all other modes. */
   const pupilY = mode === 'tracking' ? TRACKING_PUPIL_Y : 0
 
   return (

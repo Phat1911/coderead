@@ -30,6 +30,8 @@ export async function proxy(request: NextRequest) {
   return supabaseResponse
 }
 
+/** Next.js middleware matcher — restricts which routes this proxy runs on.
+ *  Add new protected route patterns here when extending auth guards. */
 export const config = {
-  matcher: ['/profile/:path*', '/learning-paths/:path+'], // <-- add new protected route patterns here
+  matcher: ['/profile/:path*', '/learning-paths/:path+'],
 }

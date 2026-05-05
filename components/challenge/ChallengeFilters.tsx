@@ -29,24 +29,33 @@ import { useBookmarks } from '@/lib/hooks/useBookmarks'
 // TF saturation, length normalization, and prefix matching for partial words.
 // ---------------------------------------------------------------------------
 
-const BM25_K1 = 1.5   // term-frequency saturation (1.2–2.0 is typical)
-const BM25_B  = 0.75  // length normalization factor (0 = off, 1 = full)
+/** Term-frequency saturation constant. Higher values reward repeated terms more; 1.2–2.0 is the typical range. */
+const BM25_K1 = 1.5
+/** Length normalisation factor. 0 = ignore document length; 1 = full normalisation. */
+const BM25_B  = 0.75
 
+/** Multipliers applied to each field's BM25 score before summing. Title outranks tags; tags outrank description. */
 const FIELD_WEIGHTS = { title: 3.0, tags: 2.0, description: 1.0 } as const
 
+/** Lowercases, strips punctuation, and splits into word tokens for BM25 indexing and query parsing. */
 function tokenize(text: string): string[] {
   return text.toLowerCase().replace(/[^\w\s]/g, ' ').split(/\s+/).filter(Boolean)
 }
 
+/** Pre-computed corpus statistics used by bm25Field on every query. Built once via useMemo. */
 interface SearchIndex {
   docs: Array<{ titleTerms: string[]; descTerms: string[]; tagTerms: string[] }>
   avgTitleLen: number
   avgDescLen: number
   avgTagLen: number
-  df: Map<string, number>  // document frequency per term
-  N: number                // total documents
+  /** Document frequency per term: how many documents contain this token (used for IDF). */
+  df: Map<string, number>
+  /** Total number of documents in the corpus. */
+  N: number
 }
 
+/** Tokenises all challenges and computes per-field average lengths and document frequencies.
+ *  O(n) — run once at mount via useMemo, not on every keystroke. */
 function buildSearchIndex(challenges: Challenge[]): SearchIndex {
   const N = challenges.length
   const docs = challenges.map(c => ({
@@ -72,6 +81,8 @@ function buildSearchIndex(challenges: Challenge[]): SearchIndex {
   }
 }
 
+/** Scores one document field against the query using BM25 with prefix matching.
+ *  Returns 0 for an empty field or when no query term is found (even as a prefix). */
 function bm25Field(
   queryTerms: string[],
   fieldTerms: string[],
@@ -105,6 +116,8 @@ function bm25Field(
   return score
 }
 
+/** Runs a multi-field BM25 query and returns challenges sorted by descending relevance score.
+ *  Returns the full catalogue unchanged when the query is empty. */
 function bm25Search(query: string, challenges: Challenge[], index: SearchIndex): Challenge[] {
   const queryTerms = tokenize(query)
   if (queryTerms.length === 0) return challenges
@@ -130,15 +143,19 @@ function bm25Search(query: string, challenges: Challenge[], index: SearchIndex):
 // Filter state + UI constants
 // ---------------------------------------------------------------------------
 
+/** Language filter value — extends the Language domain type with 'all' for the "no filter" state. */
 type Language = 'all' | 'javascript' | 'typescript' | 'python'
+/** Difficulty filter value — extends the Difficulty domain type with 'all' for the "no filter" state. */
 type DifficultyFilter = 'all' | Difficulty
 
+/** Tailwind badge classes keyed by difficulty. Mirrors other views so difficulty colours are visually consistent. */
 const difficultyColor: Record<Difficulty, string> = {
   beginner: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   intermediate: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
   advanced: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
 }
 
+/** Button labels and values for the difficulty filter row. */
 const difficultyOptions: { label: string; value: DifficultyFilter }[] = [
   { label: 'All', value: 'all' },
   { label: 'Beginner', value: 'beginner' },
@@ -146,6 +163,7 @@ const difficultyOptions: { label: string; value: DifficultyFilter }[] = [
   { label: 'Advanced', value: 'advanced' },
 ]
 
+/** Button labels and values for the language filter row. */
 const languageOptions: { label: string; value: Language }[] = [
   { label: 'All', value: 'all' },
   { label: 'JavaScript', value: 'javascript' },
@@ -153,6 +171,7 @@ const languageOptions: { label: string; value: Language }[] = [
   { label: 'Python', value: 'python' },
 ]
 
+/** Props for ChallengeFilters — receives the full static challenge catalogue from the server page. */
 interface ChallengeFiltersProps {
   challenges: Challenge[]
 }
@@ -170,6 +189,7 @@ export default function ChallengeFilters({ challenges }: ChallengeFiltersProps) 
   const [search, setSearch] = useState('')
   const [showAllTags, setShowAllTags] = useState(false)
 
+  /** Number of tag buttons shown before the "+N more" expander appears. */
   const TAG_PREVIEW_COUNT = 8
   const { bookmarks: _bookmarks, loading: bookmarksLoading, toggleBookmark, isBookmarked } = useBookmarks()
 
