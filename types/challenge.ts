@@ -13,7 +13,7 @@
  */
 
 /** Supported syntax-highlighting languages. Extend here and in lib/highlighter.ts if a new language is added. */
-export type Language = 'javascript' | 'typescript' | 'python'
+export type Language = 'javascript' | 'typescript' | 'python' | 'c' | 'sql'
 
 /** Three-tier progression model. Used as Record keys for colour maps and as URL-safe filter values. */
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced'
